@@ -7,7 +7,7 @@ import static commonutils.ServerProtocol.*;
 
 public class StorageServer {
 
-    public static final String STORAGE_PATH = "";
+    public static final String STORAGE_PATH = "/mnt/serverstorage/storage_root/";
     public static final File STORAGE_PATH_FILE = new File(STORAGE_PATH);
 
     private static TcpStream interStream;
@@ -48,7 +48,7 @@ public class StorageServer {
     private static void handleUpload(HashMap<String,String> req) throws IOException {
         
         // get name of file from request
-        String filename = req.get(FILENAME_KEY);
+        String filename = STORAGE_PATH + req.get(FILENAME_KEY);
         String filenameZip = filename + ZIP_SUFFIX;
 
         // send ack back
