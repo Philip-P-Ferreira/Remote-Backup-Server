@@ -7,7 +7,7 @@ import static commonutils.ServerProtocol.*;
 
 public class StorageServer {
 
-    public static final String STORAGE_PATH = "/mnt/serverstorage/storage_root/";
+    public static final String STORAGE_PATH = "~/usb/storage_root";
     public static final File STORAGE_PATH_FILE = new File(STORAGE_PATH);
 
     private static TcpStream interStream;
