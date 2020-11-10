@@ -5,66 +5,92 @@ import java.net.*;
 
 public class TcpStream {
   private Socket socket;
-  private DataOutputStream outputStream;
-  private BufferedReader inputStream;
+  private InputStream inStream;
+  private OutputStream outStream;
+
+  private static int BUFFER_SIZE = 2048;
 
   // Constructor
   public TcpStream(String serverAddress, int port) throws IOException {
+    
     socket = new Socket(serverAddress, port);
-    outputStream = new DataOutputStream(socket.getOutputStream());
-    inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    inStream = socket.getInputStream();
+    outStream = socket.getOutputStream();
   }
 
   // Alt constructor (from a Socket)
   public TcpStream(Socket socket) throws IOException {
+    
     this.socket = socket;
-    outputStream = new DataOutputStream(socket.getOutputStream());
-    inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    inStream = socket.getInputStream();
+    outStream = socket.getOutputStream();
   }
 
   /**
    * writeMessage -
-   * writes a string to the output of the TcpStream.
-   * Adds newline to denote end of message
-   *
+   * Writes a string plus a newline to the socket output
+   * 
    * @param str - message to write
    * @throws IOException
    */
   public void writeMessage(String str) throws IOException {
-    outputStream.writeBytes(str + '\n');
+    
+    DataOutputStream dataOut = new DataOutputStream(outStream);
+    dataOut.writeBytes(str + '\n');
   }
 
+  /**
+   * writeFromInputStream -
+   * Writes to socket output the contents of the input. Will close the socket
+   * because outStream must close to signal end of file
+   * 
+   * @param inStream
+   * @throws IOException
+   */
   public void writeFromInputStream(InputStream inStream) throws IOException {
-      int data = inStream.read();
-      while (data != -1) {
-          outputStream.write(data);
-          data = inStream.read();
-      }
+    copyStream(inStream, outStream);
   }
 
   /**
    * readMessage -
-   * reads a message from the input of the TcpStream. Reads next line (up to
-   * newline character) Throws IOException in all normal cases AND if the
-   * resulting string is NULL
-   *
-   * @return - message from input stream
+   * Reads a message to the next newline from the socket
+   * 
+   * @return - String, message from socket
    * @throws IOException
    */
   public String readMessage() throws IOException {
-    String readLine = inputStream.readLine();
+
+    BufferedReader buffInReader = new BufferedReader(new InputStreamReader(inStream));
+
+    String readLine = buffInReader.readLine();
     if (readLine == null) {
       throw new IOException();
     }
     return readLine;
   }
 
+  /**
+   * readToOutputStream - 
+   * Write the contents of socket in to outStream. Will close outstream to signal end of file for next input.
+   * 
+   * @param outStream -- OutputStream to write to
+   * @throws IOException
+   */
   public void readToOutputStream(OutputStream outStream) throws IOException {
-    int data = inputStream.read();
-    while (data != -1) {
-        outStream.write(data);
-        data = inputStream.read();
-    }
+    
+    copyStream(inStream, outStream);
+  }
+
+  /**
+   * pipeTcpStreams - 
+   * Pipes the input stream of current tcpstream to output stream of passed in TcpStream.
+   * Will close the output TcpStream to signal end of file for next input
+   * 
+   * @param streamOut - TcpStream to write to
+   * @throws IOException
+   */
+  public void pipeTcpStreams(TcpStream streamOut) throws IOException{
+    copyStream(inStream, streamOut.outStream);
   }
 
   /**
@@ -75,6 +101,7 @@ public class TcpStream {
    * @return - ip address string
    */
   public String getIpAddress() {
+    
     return socket.getInetAddress().toString();
   }
 
@@ -85,6 +112,7 @@ public class TcpStream {
    * @return - int, port number
    */
   public int getPort() {
+    
     return socket.getPort();
   }
 
@@ -94,6 +122,29 @@ public class TcpStream {
    * @throws IOException
    */
   public void close() throws IOException {
+    
     socket.close();
+  }
+
+  /**
+   * copyStream -
+   * Helper method to copy the contents on inputstream into output stream using a buffer
+   * THe output stream is closed to signal end of writing for next input stream.
+   * 
+   * @param in - input stream to read
+   * @param out - output stream to read to
+   * @throws IOException
+   */
+  private static void copyStream(InputStream in, OutputStream out) throws IOException {
+    
+    BufferedOutputStream buffOut = new BufferedOutputStream(out);
+
+    int c = 0;
+    byte[] buff = new byte[BUFFER_SIZE];
+
+    while ((c = in.read(buff)) > 0) {
+      buffOut.write(buff, 0, c);
+    }
+    buffOut.close();
   }
 }
