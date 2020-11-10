@@ -1,10 +1,13 @@
 package commonutils;
 
+import java.util.*;
+import java.io.*;
+
 public class ServerProtocol {
 
     // general key-value pair constants
-    public static final char PAIR_DELIM = '&';
-    public static final char PAIR_SEPARATOR = '=';
+    public static final String PAIR_DELIM = "&";
+    public static final String PAIR_SEPARATOR = "=";
     public static final String REQUEST_KEY = "type";
 
     // request/response type values
@@ -26,7 +29,7 @@ public class ServerProtocol {
     // status values
     public static final String STATUS_OK_VAL = "ok";
     public static final String STATUS_BAD_STORAGE_VAL = "bad_storage";
-    public static final String STATUS_FAILED_VAL = "failed";
+    public static final String STATUS_INVALID_FILENAME_VAL = "invalid_filename";
 
     // info response constants
     public static final char INFO_PAIR_DELIM = ';';
@@ -35,12 +38,51 @@ public class ServerProtocol {
     public static final String INFO_CAPACITY_USAGE = "capacity_usage";
     public static final String LAST_WRITE = "last_write";
 
-    
-
     // networks constants
     public static final int PORT = 6789;
-    public static final String INTERSERVER_ADDRESS = "ec2-18-219-79-157.us-east-2.compute.amazonaws.com";
+    public static final String INTERSERVER_ADDRESS = "127.0.0.1";
+    // public static final String INTERSERVER_ADDRESS = "ec2-18-219-79-157.us-east-2.compute.amazonaws.com";
 
+    /**
+   * createProtocolMap -
+   * create a hashmap of String-String pairs, where pairs are delimited by
+   * delimiter, and separated by separator.
+   *
+   * @param str - String to turn into hashmap
+   * @param delimiter - splits String-String pairs
+   * @param separator - breaks pair into key and value
+   * @return
+   */
+  public static HashMap<String, String> createProtocolMap(
+    String str, String delimiter, String separator) {
+    String argArr[] = str.split(delimiter);
+    HashMap<String, String> map = new HashMap<>();
 
-    
+    for (final String arg : argArr) {
+        int sepIndex = arg.indexOf(separator);
+        map.put(arg.substring(0, sepIndex), arg.substring(sepIndex + 1));
+    }
+
+    return map;
+}
+
+/**
+   * sendProtocolMessage -
+   * accepts a command type, a tcpStream, and a map. Creates a string of key value pairs
+   * based on the map and sends via the tcp stream
+   *
+   * @param stream - tcpStream, communicates to a socket
+   * @param type - commands type value
+   * @param argMap - map of key value pairs to send
+   * @throws IOException
+   */
+    public static void sendProtocolMessage(
+      TcpStream stream, String type, HashMap<String, String> argMap) throws IOException {
+        String msg = REQUEST_KEY + PAIR_SEPARATOR + type;
+
+        for (final Map.Entry<String, String> pair : argMap.entrySet()) {
+        msg += PAIR_DELIM + pair.getKey() + PAIR_SEPARATOR + pair.getValue();
+        }
+        stream.writeMessage(msg);
+    }
 }

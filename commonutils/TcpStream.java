@@ -23,19 +23,27 @@ public class TcpStream {
   }
 
   /**
-   * write -
+   * writeMessage -
    * writes a string to the output of the TcpStream.
-   * Newline denotes end of one line or message
+   * Adds newline to denote end of message
    *
    * @param str - message to write
    * @throws IOException
    */
-  public void write(String str) throws IOException {
-    outputStream.writeBytes(str);
+  public void writeMessage(String str) throws IOException {
+    outputStream.writeBytes(str + '\n');
+  }
+
+  public void writeFromInputStream(InputStream inStream) throws IOException {
+      int data = inStream.read();
+      while (data != -1) {
+          outputStream.write(data);
+          data = inStream.read();
+      }
   }
 
   /**
-   * read -
+   * readMessage -
    * reads a message from the input of the TcpStream. Reads next line (up to
    * newline character) Throws IOException in all normal cases AND if the
    * resulting string is NULL
@@ -43,12 +51,20 @@ public class TcpStream {
    * @return - message from input stream
    * @throws IOException
    */
-  public String read() throws IOException {
+  public String readMessage() throws IOException {
     String readLine = inputStream.readLine();
     if (readLine == null) {
       throw new IOException();
     }
     return readLine;
+  }
+
+  public void readToOutputStream(OutputStream outStream) throws IOException {
+    int data = inputStream.read();
+    while (data != -1) {
+        outStream.write(data);
+        data = inputStream.read();
+    }
   }
 
   /**
