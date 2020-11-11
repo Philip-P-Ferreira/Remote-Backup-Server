@@ -18,31 +18,40 @@ public class StorageServer {
         
         // create server socket at PORT
         System.out.println("\nStarting up Storage Server...");
-        interStream = new TcpStream(INTERSERVER_ADDRESS, STORAGE_PORT);
-        System.out.println("Connected to intermediate server");
-
         HashMap<String,String> requestMap;
+
         // server always on
         boolean serverOn = true;
+        boolean connectedToServer = false;
         while (serverOn) {
+            // attempt to connect to to inter server
             try {
-                requestMap = createProtocolMap(interStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
-                
-                switch (requestMap.get(REQUEST_KEY)) {
-                    
-                    case UPLOAD_START_VAL:
-                        handleUpload(requestMap);
-                        serverOn = false;
-                        break;
-                    
-                        default:
-                        break;
-                }
+                System.out.println("Attempting to connect to intermediate server");
+                interStream = new TcpStream(INTERSERVER_ADDRESS, STORAGE_PORT);
+                System.out.println("Connected to intermediate server");
 
-                
+                connectedToServer = true;
             } catch (IOException e) {
-                System.out.println("Failed to connect to inter server");
-                serverOn = false;
+                System.out.println("Failed to connect to intermediate server");
+            }
+
+            // repeat while connection is still active
+            while (connectedToServer) {
+                try {
+                    requestMap = createProtocolMap(interStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
+                    switch (requestMap.get(REQUEST_KEY)) {
+                        
+                        case UPLOAD_START_VAL:
+                            handleUpload(requestMap);
+                            break;
+                        
+                        default:
+                            break;
+                    }
+                } catch (IOException e) {
+                    System.out.println("Connection to intermediate server broken");
+                    connectedToServer = false;
+                }
             }
         }
         interStream.close();
@@ -60,10 +69,13 @@ public class StorageServer {
         sendProtocolMessage(interStream, UPLOAD_START_ACK_VAL, res);
         System.out.println("Ready to receive upload...");
 
-        // write socket in to file, reopen socket
+        // write socket in to file
         FileOutputStream outToFile = new FileOutputStream(filenameZip);
         interStream.readToOutputStream(outToFile);
+        
+        // reconnect to server (file write breaks socket)
         interStream = new TcpStream(INTERSERVER_ADDRESS, STORAGE_PORT);
+        
         System.out.println("File received, reconnected to server");
     }
 }
