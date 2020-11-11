@@ -101,7 +101,11 @@ public class StorageServer {
 
         // write socket in to file
         FileOutputStream outToFile = new FileOutputStream(filenameZip);
+        try {
         interStream.readToOutputStream(outToFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // reconnect to server (file write breaks socket)
         interStream = new TcpStream(INTERSERVER_ADDRESS, STORAGE_PORT);
