@@ -43,7 +43,7 @@ public class ServerProtocol {
     public static final int STORAGE_PORT = 6788;
     public static final int CLIENT_PORT = 6789;
     // public static final String INTERSERVER_ADDRESS = "127.0.0.1";
-    public static final String INTERSERVER_ADDRESS = "ec2-18-219-79-157.us-east-2.compute.amazonaws.com";
+    public static final String INTERSERVER_ADDRESS = "18.219.79.57";
 
     public static final String ZIP_SUFFIX = ".zip";
     /**
