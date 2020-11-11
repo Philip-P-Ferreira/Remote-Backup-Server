@@ -7,35 +7,52 @@ import commonutils.TcpStream;
 import static commonutils.ServerProtocol.*;
 
 public class InterServer {
+
+    public static ServerSocket storageSocket;
+    public static ServerSocket clientSocket;
+
+    public static TcpStream storageStream;
+
     public static void main(String[] args) throws IOException {
-       
-        // establish server socket and storage socket
-        ServerSocket sSocket = new ServerSocket(STORAGE_PORT);
-        TcpStream storageStream = new TcpStream(sSocket.accept());
 
-        // test file name
-        String filename = "folder";
-        String filepath = "iofiles/out/folder.zip";
+        // establish respective sockets and storage stream
+        storageSocket = new ServerSocket(STORAGE_PORT);
+        clientSocket = new ServerSocket(CLIENT_PORT);
+        System.out.println("Starting up intermediate server...");
 
-        // singal storage to start upload
-        HashMap<String,String> req = new HashMap<>();
-        req.put(FILENAME_KEY, filename);
-        sendProtocolMessage(storageStream, UPLOAD_START_VAL, req);
-        System.out.println(storageStream.readMessage());
+        // accept storage server
+        storageStream = new TcpStream(storageSocket.accept());
+        System.out.println("Connected to storage server");
 
-        // write file to socket, reaccept socket
-        FileInputStream fileIn = new FileInputStream(filepath);
-        storageStream.writeFromInputStream(fileIn);
-        fileIn.close();
-        storageStream = new TcpStream(sSocket.accept());
-
-        // signal server that it is done
-        req.clear();
-        sendProtocolMessage(storageStream, UPLOAD_END_VAL, req);
-        System.out.println(storageStream.readMessage());
-
-        // wrap things up
+        // server always on
+        boolean serverOn = true;
+        while (serverOn) {
+            try {
+                // thread created when a client connects to server
+                Thread serverThread = new Thread(new InterServerThread(clientSocket.accept()));
+                serverThread.start();
+            } catch (IOException e) {
+                System.out.println("Failed to accept");
+                e.printStackTrace();
+            }
+        }
         storageStream.close();
-        sSocket.close();
+        storageSocket.close();
+        clientSocket.close();
     }
-}
+
+    public static synchronized void reconnectStorageServer() throws IOException {
+        storageStream = new TcpStream(storageSocket.accept());
+    }
+
+    public static synchronized HashMap<String,String> forwardToStorage(String req) throws IOException {
+
+        storageStream.writeMessage(req);
+        return createProtocolMap(storageStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
+    }
+
+    public static synchronized void streamToStorage(TcpStream clientStream) throws IOException {
+        clientStream.pipeTcpStreams(storageStream);
+        reconnectStorageServer();
+    }
+} 

@@ -16,6 +16,7 @@ public class ServerProtocol {
     public static final String UPLOAD_END_VAL = "upload_end";
     public static final String UPLOAD_END_ACK_VAL = "upload_end_ack";
     public static final String GET_INFO_VAL = "get_info";
+    public static final String INFO_RESPONSE_VAL = "info";
     public static final String REQUEST_DOWNLOAD_VAL = "request_download";
     public static final String REQUEST_DOWNLOAD_ACK_VAL = "request_download_ack";
     public static final String START_DOWNLOAD = "start_download";
