@@ -22,12 +22,6 @@ public class DesktopClient {
         FileInputStream fileIn = new FileInputStream(filepath);
         interServerStream.writeFromInputStream(fileIn);
         fileIn.close();
-        interServerStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
-
-        // signal server that it is done
-        req.clear();
-        sendProtocolMessage(interServerStream, UPLOAD_END_VAL, req);
-        System.out.println(interServerStream.readMessage());
 
         // wrap things up
         interServerStream.close();

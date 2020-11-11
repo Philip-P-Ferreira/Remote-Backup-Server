@@ -13,14 +13,10 @@ public class ServerProtocol {
     // request/response type values
     public static final String UPLOAD_START_VAL = "upload_start";
     public static final String UPLOAD_START_ACK_VAL = "upload_start_ack";
-    public static final String UPLOAD_END_VAL = "upload_end";
-    public static final String UPLOAD_END_ACK_VAL = "upload_end_ack";
     public static final String GET_INFO_VAL = "get_info";
     public static final String INFO_RESPONSE_VAL = "info";
     public static final String REQUEST_DOWNLOAD_VAL = "request_download";
     public static final String REQUEST_DOWNLOAD_ACK_VAL = "request_download_ack";
-    public static final String START_DOWNLOAD = "start_download";
-    public static final String END_DOWNLOAD = "end_download";
 
     // argument keys
     public static final String STATUS_KEY = "status";
@@ -42,8 +38,8 @@ public class ServerProtocol {
     // networks constants
     public static final int STORAGE_PORT = 6788;
     public static final int CLIENT_PORT = 6789;
-    // public static final String INTERSERVER_ADDRESS = "127.0.0.1";
-    public static final String INTERSERVER_ADDRESS = "18.219.79.157";
+    public static final String INTERSERVER_ADDRESS = "127.0.0.1";
+    // public static final String INTERSERVER_ADDRESS = "18.219.79.157";
 
     public static final String ZIP_SUFFIX = ".zip";
     /**

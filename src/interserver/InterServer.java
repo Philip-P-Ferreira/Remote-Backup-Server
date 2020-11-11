@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.util.HashMap;
 
 import commonutils.TcpStream;
 
@@ -45,10 +44,10 @@ public class InterServer {
         storageStream = new TcpStream(storageSocket.accept());
     }
 
-    public static synchronized HashMap<String,String> forwardToStorage(String req) throws IOException {
+    public static synchronized String forwardToStorage(String req) throws IOException {
 
         storageStream.writeMessage(req);
-        return createProtocolMap(storageStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
+        return storageStream.readMessage();
     }
 
     public static synchronized void streamToStorage(TcpStream clientStream) throws IOException {
