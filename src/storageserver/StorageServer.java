@@ -8,7 +8,6 @@ import static commonutils.ServerProtocol.*;
 public class StorageServer {
 
     // file constants
-    // public static final String STORAGE_PATH = "/home/usb/storage_root/";
     public static final String STORAGE_PATH = "iofiles/in/";
     public static final File STORAGE_PATH_FILE = new File(STORAGE_PATH);
 
@@ -101,11 +100,7 @@ public class StorageServer {
 
         // write socket in to file
         FileOutputStream outToFile = new FileOutputStream(filenameZip);
-        try {
         interStream.readToOutputStream(outToFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         // reconnect to server (file write breaks socket)
         interStream = new TcpStream(INTERSERVER_ADDRESS, STORAGE_PORT);
