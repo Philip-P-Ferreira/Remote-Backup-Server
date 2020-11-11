@@ -8,7 +8,8 @@ import static commonutils.ServerProtocol.*;
 public class StorageServer {
 
     // file constants
-    public static final String STORAGE_PATH = "~/usb/storage_root/";
+    // public static final String STORAGE_PATH = "/home/usb/storage_root/";
+    public static final String STORAGE_PATH = "iofiles/in/";
     public static final File STORAGE_PATH_FILE = new File(STORAGE_PATH);
 
     // number constants
