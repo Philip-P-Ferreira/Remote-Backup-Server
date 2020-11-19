@@ -62,7 +62,12 @@ public class InterServerThread implements Runnable{
     }
 
     private void handleUpload(HashMap<String,String> req) throws IOException {
-        InterServer.streamToStorage(clientStream);
+        
+        long fileSize = Long.parseLong(req.get(FILE_SIZE_KEY));
+        InterServer.streamToStorage(clientStream, fileSize);
         System.out.println("End of upload stream");
+
+        clientStream.writeMessage(InterServer.getMessageFromStorage());
+        clientStream.close();
     }
 }

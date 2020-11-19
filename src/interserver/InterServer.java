@@ -40,18 +40,17 @@ public class InterServer {
         clientSocket.close();
     }
 
-    public static synchronized void reconnectStorageServer() throws IOException {
-        storageStream = new TcpStream(storageSocket.accept());
-    }
-
     public static synchronized String forwardToStorage(String req) throws IOException {
 
         storageStream.writeMessage(req);
+        return getMessageFromStorage();
+    }
+
+    public static synchronized String getMessageFromStorage() throws IOException {
         return storageStream.readMessage();
     }
 
-    public static synchronized void streamToStorage(TcpStream clientStream) throws IOException {
-        clientStream.pipeTcpStreams(storageStream);
-        reconnectStorageServer();
+    public static synchronized void streamToStorage(TcpStream clientStream, long sizeInBytes) throws IOException {
+        clientStream.pipeTcpStreams(storageStream, sizeInBytes);
     }
 } 

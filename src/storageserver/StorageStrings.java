@@ -4,6 +4,6 @@ public class StorageStrings {
     public static final String CONNECTED_TO_INTER = "Connected to intermediate server";
     public static final String CONNECTION_BROKEN = "Connection to intermediate server broken";
     public static final String UPLOAD_READY = "Ready to receive upload...";
-    public static final String UPLOAD_RECEIVED = "File received, reconnected to server";
+    public static final String UPLOAD_RECEIVED = "File received";
     
 }

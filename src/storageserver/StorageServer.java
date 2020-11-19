@@ -65,7 +65,7 @@ public class StorageServer {
                 System.out.print(StorageStrings.ATTEMPTING_RECONNECT);
             }
             interStream = new TcpStream(INTERSERVER_ADDRESS, STORAGE_PORT);
-            
+
             // on success, set relevant variables / output
             attemptCount = 0;
             System.out.println('\n' + StorageStrings.CONNECTED_TO_INTER);
@@ -88,23 +88,40 @@ public class StorageServer {
 
     private static void handleUpload(HashMap<String, String> req) throws IOException {
 
-        // get name of file from request
+        /******* get file name and file size *************/
         String filename = STORAGE_PATH + req.get(FILENAME_KEY);
-        String filenameZip = filename + ZIP_SUFFIX;
+        long fileSize = Long.parseLong(req.get(FILE_SIZE_KEY));
+        String filenameZip = filename + ZIP_SUFFIX; // name of zip file (add .zip)
 
         // send ack back
         HashMap<String, String> res = new HashMap<>();
         res.put(STATUS_KEY, STATUS_OK_VAL);
         sendProtocolMessage(interStream, UPLOAD_START_ACK_VAL, res);
+
         System.out.println(StorageStrings.UPLOAD_READY);
 
-        // write socket in to file
+        /***** read from socket into file *********/
+        // create zip file and corresponding output stream
+        File zipFile = new File(filenameZip);
         FileOutputStream outToFile = new FileOutputStream(filenameZip);
-        interStream.readToOutputStream(outToFile);
 
-        // reconnect to server (file write breaks socket)
-        interStream = new TcpStream(INTERSERVER_ADDRESS, STORAGE_PORT);
+        // pipe socket into file
+        interStream.readToOutputStream(outToFile, fileSize);
+        outToFile.close();
+
         System.out.println(StorageStrings.UPLOAD_RECEIVED);
+
+        // send upload success message
+        sendProtocolMessage(interStream, UPLOAD_RECEIVED_VAL, res);
+
+        /**** unzip file using system shell command ********/
+        String[] cmd = { "unzip", "-o", zipFile.getPath(), "-d", STORAGE_PATH };
+        Process unzipProc = Runtime.getRuntime().exec(cmd);
+        try {
+            unzipProc.waitFor();
+        } catch (InterruptedException ignored) {}
+
+        zipFile.delete(); // delete zip (already decompressed)
     }
 
     // helper method to easily clear console

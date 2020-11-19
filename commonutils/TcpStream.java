@@ -47,8 +47,8 @@ public class TcpStream {
    * @param inStream
    * @throws IOException
    */
-  public void writeFromInputStream(InputStream inStream) throws IOException {
-    copyStream(inStream, outStream);
+  public void writeFromInputStream(InputStream inStream, long sizeInBytes) throws IOException {
+    copyStream(inStream, outStream, sizeInBytes);
   }
 
   /**
@@ -71,26 +71,25 @@ public class TcpStream {
 
   /**
    * readToOutputStream - 
-   * Write the contents of socket in to outStream. Will close outstream to signal end of file for next input.
+   * Write the contents of socket in to outStream
    * 
    * @param outStream -- OutputStream to write to
    * @throws IOException
    */
-  public void readToOutputStream(OutputStream outStream) throws IOException {
+  public void readToOutputStream(OutputStream outStream, long sizeInBytes) throws IOException {
     
-    copyStream(inStream, outStream);
+    copyStream(inStream, outStream, sizeInBytes);
   }
 
   /**
    * pipeTcpStreams - 
    * Pipes the input stream of current tcpstream to output stream of passed in TcpStream.
-   * Will close the output TcpStream to signal end of file for next input
    * 
    * @param streamOut - TcpStream to write to
    * @throws IOException
    */
-  public void pipeTcpStreams(TcpStream streamOut) throws IOException{
-    copyStream(inStream, streamOut.outStream);
+  public void pipeTcpStreams(TcpStream streamOut, long sizeInBytes) throws IOException{
+    copyStream(inStream, streamOut.outStream, sizeInBytes);
   }
 
   /**
@@ -129,22 +128,24 @@ public class TcpStream {
   /**
    * copyStream -
    * Helper method to copy the contents on inputstream into output stream using a buffer
-   * THe output stream is closed to signal end of writing for next input stream.
+   * Writes to the output stream n times where n is the size of incoming stream divided by the
+   * buffer size
    * 
    * @param in - input stream to read
    * @param out - output stream to read to
    * @throws IOException
    */
-  private static void copyStream(InputStream in, OutputStream out) throws IOException {
+  private static void copyStream(InputStream in, OutputStream out, long sizeInBytes) throws IOException {
     
     BufferedOutputStream buffOut = new BufferedOutputStream(out);
 
     int c = 0;
     byte[] buff = new byte[BUFFER_SIZE];
 
-    while ((c = in.read(buff)) > 0) {
+    for (int i = 0; i < sizeInBytes; i += BUFFER_SIZE) {
+      c = in.read(buff);
       buffOut.write(buff, 0, c);
     }
-    buffOut.close();
+    buffOut.flush();
   }
 }
