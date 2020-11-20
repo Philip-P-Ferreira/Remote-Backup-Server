@@ -20,8 +20,7 @@ public class InterServer {
         System.out.println("Starting up intermediate server...");
 
         // accept storage server
-        storageStream = new TcpStream(storageSocket.accept());
-        System.out.println("Connected to storage server");
+        reconnectStorage();
 
         // server always on
         boolean serverOn = true;
@@ -42,6 +41,9 @@ public class InterServer {
 
     public static synchronized String forwardToStorage(String req) throws IOException {
 
+        if (storageStream == null) {
+            throw new IOException("No stream to storage");
+        }
         storageStream.writeMessage(req);
         return getMessageFromStorage();
     }
@@ -52,5 +54,19 @@ public class InterServer {
 
     public static synchronized void streamToStorage(TcpStream clientStream, long sizeInBytes) throws IOException {
         clientStream.pipeTcpStreams(storageStream, sizeInBytes);
+    }
+
+    public static void reconnectStorage() {
+        Runnable connectStorage = new Runnable() {
+            public void run() {
+                try {
+                    storageStream = new TcpStream(storageSocket.accept());
+                } catch (IOException ignored) {}
+            System.out.println("Connected to storage server");
+
+            }
+        };
+        Thread thread = new Thread(connectStorage);
+        thread.start();
     }
 } 

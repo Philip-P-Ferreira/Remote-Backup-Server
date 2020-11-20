@@ -22,13 +22,19 @@ public class DesktopClient {
     
     // main switch for option handling
     Scanner console = new Scanner(System.in);
-    switch(getOption(console)) {
-      case UPLOAD:
-        handleUpload(console);
-        break;
-      default:
-        break;
-    }
+    boolean session = true;
+    while (session) {
+      switch(getOption(console)) {
+        case UPLOAD:
+          handleUpload(console);
+          break;
+        case EXIT:
+          session = false;
+          break;
+        default:
+          break;
+      }
+  }
   }
 
   /**
@@ -53,10 +59,10 @@ public class DesktopClient {
 
       // check validity of input
       if (!input.hasNextInt()) {
-        System.out.println("Please input a number");
+        System.out.println("\nPlease input a number");
         input.nextLine();
-      } else if ((commandNum = input.nextInt()) < 0 || commandNum > (CLIENT_OPTIONS.values().length) + 1) {
-        System.out.println("Invalid number");
+      } else if ((commandNum = input.nextInt()) < 1 || commandNum > (CLIENT_OPTIONS.values().length)) {
+        System.out.println("\nInvalid number");
       } else {
         validInput = true;
       }
@@ -76,17 +82,37 @@ public class DesktopClient {
   private static void handleUpload(Scanner input) throws IOException {
     
     // prompt user for file, make file
-    System.out.print("\nEnter the file path to upload: ");
-    File fileToSend = new File(input.nextLine());
+    File fileToSend = null;
+    boolean validFile = false;
+
+    // loop until valid file from user
+    while (!validFile) {
+      System.out.print("\nEnter the file path to upload: ");
+      String lineInput = input.nextLine();
+
+      // exit if just enter space
+      if (lineInput.isEmpty()) {
+        return;
+      }
+
+      // create file and check if exists
+      fileToSend = new File(lineInput);
+      if (fileToSend.exists()) {
+        validFile = true;
+      } else {
+        System.out.println("File does not exist, please try again");
+      }
+    }
 
     // create zip file and corresponding stream
     File zipFile = new File(fileToSend.getPath() + ZIP_SUFFIX);
     ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile));
 
     // compress file
+    System.out.println("\nCompressing file...");
     zipFile(fileToSend, fileToSend.getName(), zipOut);
     zipOut.close();
-    System.out.println("File has been zipped");
+    System.out.println("File has been zipped\n");
 
     // create arg map to send
     HashMap<String, String> req = new HashMap<>();
@@ -94,18 +120,56 @@ public class DesktopClient {
     req.put(FILE_SIZE_KEY, "" + fileToSend.length());
 
     // create tcp stream, signal server to start
-    TcpStream interServerStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
-    sendProtocolMessage(interServerStream, UPLOAD_START_VAL, req);
-    System.out.println(interServerStream.readMessage());
+    boolean goodConnect = true; // flag for good upload connection
+    TcpStream interServerStream = null;
+    HashMap<String,String> resMap = new HashMap<>();
+    try {
+      // attempt to connect to server
+      interServerStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
+      sendProtocolMessage(interServerStream, UPLOAD_START_VAL, req);
+      resMap = createProtocolMap(interServerStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
+    } catch (IOException e) {
+        System.out.println("Could not connect to intermediate server");
+        zipFile.delete();
+
+        goodConnect = false;
+    }
+
+    // check response status
+    boolean goodResponse = false;
+    
+    if (goodConnect) {
+      switch (resMap.get(STATUS_KEY)) {
+        
+        case STATUS_BAD_STORAGE_VAL:
+          System.out.println("Could not connect to storage");
+          break;
+
+
+        case STATUS_INVALID_FILENAME_VAL:
+          System.out.println("File already exists on storage");
+          break;
+
+        default:
+          goodResponse = true;
+      }
+    }
 
     // write file to socket
-    FileInputStream zipFileIn = new FileInputStream(zipFile);
-    interServerStream.writeFromInputStream(zipFileIn, zipFile.length());
-    zipFileIn.close();
+    if (goodConnect && goodResponse) {
+      System.out.println("Uploading file...");
+
+      FileInputStream zipFileIn = new FileInputStream(zipFile);
+      interServerStream.writeFromInputStream(zipFileIn, zipFile.length());
+
+      zipFileIn.close();
+      System.out.println("Upload complete");
 
     // clean up streams
-    System.out.println(interServerStream.readMessage());
+    System.out.println("Status response: " + createProtocolMap(interServerStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR).get(STATUS_KEY));
     interServerStream.close();
+    }
+
     zipFile.delete();
   }
 

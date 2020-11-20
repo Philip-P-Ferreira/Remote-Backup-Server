@@ -29,7 +29,7 @@ public class InterServerThread implements Runnable{
                 storageResponseStr = InterServer.forwardToStorage(clientRequest);
             } catch (IOException e) {
                 System.out.println("Could not connect to storage");
-            }
+            } 
 
             // a response map to send back bad status if needed
             HashMap<String,String> badStorageStat = new HashMap<>();
@@ -47,7 +47,6 @@ public class InterServerThread implements Runnable{
                         clientStream.writeMessage(storageResponseStr);
                         handleUpload(requestMap);
                     }
-
                 default:
                     break;
             }
