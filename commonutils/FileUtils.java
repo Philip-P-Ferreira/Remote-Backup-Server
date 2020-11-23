@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.zip.*;
 
 public class FileUtils {
-  
   /**
    * zipFile -
    * Accepts two files. One file source to compress and one file desination to write compressed
@@ -62,9 +61,9 @@ public class FileUtils {
   }
 
   /**
-   * unzipFile - 
+   * unzipFile -
    * Iteratevely unzips a file to the given destination file
-   * 
+   *
    * @param zipFile - zip file to decompress
    * @param unzippedDest - destination to place file
    * @throws IOException
@@ -79,7 +78,6 @@ public class FileUtils {
       if (zipEntry.isDirectory()) {
         newFile.mkdirs();
       } else {
-
         // write file content
         FileOutputStream fos = new FileOutputStream(newFile);
         int len;
@@ -97,7 +95,7 @@ public class FileUtils {
   /**
    * new File -
    * Helper function that creates a new file based on the zip entry passed in
-   * 
+   *
    * @param destinationDir - where the file will be written to
    * @param zipEntry - zip entry from decompressing zip
    * @return - File, new file from zip entry

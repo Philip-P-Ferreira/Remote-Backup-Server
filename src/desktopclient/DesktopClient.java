@@ -16,18 +16,17 @@ public class DesktopClient {
     while (session) {
       try {
         switch (getOption(console)) {
-          
           case UPLOAD:
             handleUpload(console);
             break;
-          
+
           case DOWNLOAD:
             handleDownload(console);
-          
+
           case EXIT:
             session = false;
             break;
-          
+
           default:
             break;
         }
@@ -122,7 +121,6 @@ public class DesktopClient {
 
     // handle status types
     switch (resMap.get(STATUS_KEY)) {
-      
       case STATUS_BAD_STORAGE_VAL:
         System.out.println("Could not connect to storage");
         break;
@@ -152,26 +150,24 @@ public class DesktopClient {
   }
 
   private static void handleDownload(Scanner input) throws IOException {
-    
     // get file name from user
     System.out.print("Enter file name to download: ");
     String filename = input.nextLine();
 
     // put file name as arg
-    HashMap <String,String> reqMap = new HashMap<>();
+    HashMap<String, String> reqMap = new HashMap<>();
     reqMap.put(FILENAME_KEY, filename);
 
     // send req to server
     TcpStream interStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
-    HashMap<String,String> resMap = getResponse(interStream, reqMap, REQUEST_DOWNLOAD_VAL);
+    HashMap<String, String> resMap = getResponse(interStream, reqMap, REQUEST_DOWNLOAD_VAL);
 
     // read response and act accordingly
     switch (resMap.get(STATUS_KEY)) {
-
       case STATUS_BAD_STORAGE_VAL:
         System.out.println("Could not connect to storage");
         break;
-      
+
       case STATUS_INVALID_FILENAME_VAL:
         System.out.println("File does not exist on storage");
         break;
@@ -210,5 +206,5 @@ public class DesktopClient {
     resMap = createProtocolMap(stream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
 
     return resMap;
-  } 
+  }
 }
