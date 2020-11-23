@@ -56,6 +56,10 @@ public class InterServer {
         clientStream.pipeTcpStreams(storageStream, sizeInBytes);
     }
 
+    public static synchronized void streamToClient(TcpStream clientStream, long sizeInBytes) throws IOException {
+        storageStream.pipeTcpStreams(clientStream, sizeInBytes);
+    }
+
     public static void reconnectStorage() {
         Runnable connectStorage = new Runnable() {
             public void run() {

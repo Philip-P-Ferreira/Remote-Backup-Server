@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.HashMap;
 
+import commonutils.FileUtils;
 import commonutils.TcpStream;
 
 import static commonutils.ServerProtocol.*;
@@ -42,12 +43,14 @@ public class StorageServer {
                         case UPLOAD_START_VAL:
                             handleUpload(requestMap);
                             break;
-
+                        case REQUEST_DOWNLOAD_VAL:
+                            handleDownload();
+                            break;
                         default:
                             break;
                     }
                 } catch (IOException e) {
-                    System.out.println(StorageStrings.CONNECTION_BROKEN);
+                    System.out.println(StorageStrings.CONNECTION_BROKEN +": " + e.getMessage());
                     connectedToServer = false;
                     sleep();
                 }
@@ -88,40 +91,41 @@ public class StorageServer {
 
     private static void handleUpload(HashMap<String, String> req) throws IOException {
 
-        /******* get file name and file size *************/
-        String filename = STORAGE_PATH + req.get(FILENAME_KEY);
-        long fileSize = Long.parseLong(req.get(FILE_SIZE_KEY));
-        String filenameZip = filename + ZIP_SUFFIX; // name of zip file (add .zip)
+        HashMap<String, String> res = new HashMap<>(); // map to send back
+        File fileToStore = new File(STORAGE_PATH + req.get(FILENAME_KEY));
+        
+        // if file exists, send invalid file name status
+        if (fileToStore.exists()) {
+            res.put(STATUS_KEY, STATUS_INVALID_FILENAME_VAL);
+            sendProtocolMessage(interStream, UPLOAD_START_ACK_VAL, res);
+            System.out.println(StorageStrings.FILE_ALREADY_EXISTS);
+        } else {
+            // send ack back
+            res.put(STATUS_KEY, STATUS_OK_VAL);
+            sendProtocolMessage(interStream, UPLOAD_START_ACK_VAL, res);
 
-        // send ack back
-        HashMap<String, String> res = new HashMap<>();
-        res.put(STATUS_KEY, STATUS_OK_VAL);
-        sendProtocolMessage(interStream, UPLOAD_START_ACK_VAL, res);
+            // get file size and create zip file destination
+            long fileSize = Long.parseLong(req.get(FILE_SIZE_KEY));
+            File zipFile = new File(fileToStore.getPath() + ZIP_SUFFIX);
+            FileOutputStream outToZip = new FileOutputStream(zipFile);
+            System.out.println(StorageStrings.UPLOAD_READY);
 
-        System.out.println(StorageStrings.UPLOAD_READY);
+            // pipe socket into file
+            interStream.readToOutputStream(outToZip, fileSize);
+            outToZip.close();
+            System.out.println(StorageStrings.UPLOAD_RECEIVED);
 
-        /***** read from socket into file *********/
-        // create zip file and corresponding output stream
-        File zipFile = new File(filenameZip);
-        FileOutputStream outToFile = new FileOutputStream(filenameZip);
+            // send upload success message
+            sendProtocolMessage(interStream, UPLOAD_RECEIVED_VAL, res);
 
-        // pipe socket into file
-        interStream.readToOutputStream(outToFile, fileSize);
-        outToFile.close();
+            // method to unzip file
+            FileUtils.unzipFile(zipFile, STORAGE_PATH_FILE);
+            zipFile.delete(); // delete zip (already decompressed)
+        }
+    }
 
-        System.out.println(StorageStrings.UPLOAD_RECEIVED);
-
-        // send upload success message
-        sendProtocolMessage(interStream, UPLOAD_RECEIVED_VAL, res);
-
-        /**** unzip file using system shell command ********/
-        String[] cmd = { "unzip", "-o", zipFile.getPath(), "-d", STORAGE_PATH };
-        Process unzipProc = Runtime.getRuntime().exec(cmd);
-        try {
-            unzipProc.waitFor();
-        } catch (InterruptedException ignored) {}
-
-        zipFile.delete(); // delete zip (already decompressed)
+    private static void handleDownload() {
+        
     }
 
     // helper method to easily clear console

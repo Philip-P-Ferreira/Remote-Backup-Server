@@ -29,7 +29,9 @@ public class InterServerThread implements Runnable{
                 storageResponseStr = InterServer.forwardToStorage(clientRequest);
             } catch (IOException e) {
                 System.out.println("Could not connect to storage");
-            } 
+            }
+            HashMap<String,String> storageResponseMap = new HashMap<>();
+            storageResponseMap = createProtocolMap(storageResponseStr, PAIR_DELIM, PAIR_SEPARATOR);
 
             // a response map to send back bad status if needed
             HashMap<String,String> badStorageStat = new HashMap<>();
@@ -45,8 +47,18 @@ public class InterServerThread implements Runnable{
                     } else {
                         System.out.println("Starting upload stream...");
                         clientStream.writeMessage(storageResponseStr);
-                        handleUpload(requestMap);
+                        handleUpload(requestMap, storageResponseMap);
                     }
+                    break;
+                case REQUEST_DOWNLOAD_VAL:
+                    if (badStorage) {
+                        sendProtocolMessage(clientStream, REQUEST_DOWNLOAD_ACK_VAL, badStorageStat);
+                    } else {
+                        System.out.println("Requesting download...");
+                        clientStream.writeMessage(storageResponseStr);
+                        handleDownload(storageResponseStr);
+                    }
+                    break;
                 default:
                     break;
             }
@@ -56,17 +68,32 @@ public class InterServerThread implements Runnable{
 
             
         } catch (IOException e) {
-            System.out.println("Could not reach client");
+            System.out.println("Could not reach client: " + e.getMessage());
         }
     }
 
-    private void handleUpload(HashMap<String,String> req) throws IOException {
+    private void handleUpload(HashMap<String,String> request, HashMap<String,String> response ) throws IOException {
         
-        long fileSize = Long.parseLong(req.get(FILE_SIZE_KEY));
-        InterServer.streamToStorage(clientStream, fileSize);
-        System.out.println("End of upload stream");
+        String status = response.get(STATUS_KEY);
+        if (status != null && status.equals(STATUS_OK_VAL)) {
+            long fileSize = Long.parseLong(request.get(FILE_SIZE_KEY));
+            InterServer.streamToStorage(clientStream, fileSize);
+            System.out.println("End of upload stream");
 
-        clientStream.writeMessage(InterServer.getMessageFromStorage());
-        clientStream.close();
+            clientStream.writeMessage(InterServer.getMessageFromStorage());
+            clientStream.close();
+        } else {
+            System.out.println("File alreay exists on storage");
+        }
+    }
+
+    private void handleDownload(String storageRes) throws IOException {
+
+        HashMap<String,String> storageResMap = createProtocolMap(storageRes, PAIR_DELIM, PAIR_SEPARATOR);
+        InterServer.forwardToStorage(clientStream.readMessage());
+       
+        System.out.println("Starting download stream...");
+        InterServer.streamToClient(clientStream, Long.parseLong(storageResMap.get(FILE_SIZE_KEY)));
+        System.out.println("Download complete");
     }
 }
