@@ -25,12 +25,12 @@ public class InterServerThread implements Runnable {
       // try to get response from storage
       String storageResponseStr = "";
       try {
-        storageResponseStr = InterServer.forwardToStorage(clientRequest);
+        InterServer.forwardToStorage(clientRequest);
+        storageResponseStr = InterServer.getMessageFromStorage();
       } catch (IOException e) {
         System.out.println("Could not connect to storage");
       }
-      HashMap<String, String> storageResponseMap = new HashMap<>();
-      storageResponseMap = createProtocolMap(storageResponseStr, PAIR_DELIM, PAIR_SEPARATOR);
+      HashMap<String, String> storageResponseMap = createProtocolMap(storageResponseStr, PAIR_DELIM, PAIR_SEPARATOR);
 
       // a response map to send back bad status if needed
       HashMap<String, String> badStorageStat = new HashMap<>();
@@ -54,7 +54,7 @@ public class InterServerThread implements Runnable {
           } else {
             System.out.println("Requesting download...");
             clientStream.writeMessage(storageResponseStr);
-            handleDownload(storageResponseStr);
+            handleDownload(storageResponseMap);
           }
           break;
         default:
@@ -83,13 +83,17 @@ public class InterServerThread implements Runnable {
     }
   }
 
-  private void handleDownload(String storageRes) throws IOException {
-    HashMap<String, String> storageResMap =
-        createProtocolMap(storageRes, PAIR_DELIM, PAIR_SEPARATOR);
-    InterServer.forwardToStorage(clientStream.readMessage());
+  private void handleDownload(HashMap<String,String> response) throws IOException {
+  
+    String status = response.get(STATUS_KEY);
+    if (status != null && status.equals(STATUS_OK_VAL)) {
+      InterServer.forwardToStorage(clientStream.readMessage());
 
-    System.out.println("Starting download stream...");
-    InterServer.streamToClient(clientStream, Long.parseLong(storageResMap.get(FILE_SIZE_KEY)));
-    System.out.println("Download complete");
+      System.out.println("Starting download stream...");
+      InterServer.streamToClient(clientStream, Long.parseLong(response.get(FILE_SIZE_KEY)));
+      System.out.println("Download complete");
+    } else {
+      System.out.println("Invalid file name from client");
+    }
   }
 }

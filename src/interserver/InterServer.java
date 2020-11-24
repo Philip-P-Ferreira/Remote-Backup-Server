@@ -36,12 +36,11 @@ public class InterServer {
     clientSocket.close();
   }
 
-  public static synchronized String forwardToStorage(String req) throws IOException {
+  public static synchronized void forwardToStorage(String req) throws IOException {
     if (storageStream == null) {
       throw new IOException("No stream to storage");
     }
     storageStream.writeMessage(req);
-    return getMessageFromStorage();
   }
 
   public static synchronized String getMessageFromStorage() throws IOException {

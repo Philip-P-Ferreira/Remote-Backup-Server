@@ -22,6 +22,7 @@ public class DesktopClient {
 
           case DOWNLOAD:
             handleDownload(console);
+            break;
 
           case EXIT:
             session = false;
@@ -180,11 +181,11 @@ public class DesktopClient {
 
         // signal server to start download
         reqMap.clear();
+        FileOutputStream zipOut = new FileOutputStream(zipFile);
         sendProtocolMessage(interStream, START_DOWNLOAD_VAL, reqMap);
 
         // download contents
         System.out.println("\nDownloading file...");
-        FileOutputStream zipOut = new FileOutputStream(zipFile);
         interStream.readToOutputStream(zipOut, Long.parseLong(resMap.get(FILE_SIZE_KEY)));
         zipOut.close();
         System.out.println("File downloaded");
@@ -202,7 +203,7 @@ public class DesktopClient {
       TcpStream stream, HashMap<String, String> argMap, String requestType) throws IOException {
     // attempt to connect to server
     HashMap<String, String> resMap = new HashMap<>();
-    sendProtocolMessage(stream, UPLOAD_START_VAL, argMap);
+    sendProtocolMessage(stream, requestType, argMap);
     resMap = createProtocolMap(stream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
 
     return resMap;

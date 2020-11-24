@@ -39,7 +39,7 @@ public class StorageServer {
               handleUpload(requestMap);
               break;
             case REQUEST_DOWNLOAD_VAL:
-              handleDownload();
+              handleDownload(requestMap);
               break;
             default:
               break;
@@ -117,7 +117,40 @@ public class StorageServer {
     }
   }
 
-  private static void handleDownload() {}
+  private static void handleDownload(HashMap<String, String> requestMap) throws IOException {
+    
+    // Map to store response, file to send back
+    HashMap<String,String> responseMap = new HashMap<>();
+    File fileToSend = new File(STORAGE_PATH + requestMap.get(FILENAME_KEY));
+
+    // if file exists, send a zip back
+    if (fileToSend.exists()) {
+      System.out.println("Compressing file...");
+      File zipFile = new File(fileToSend.getPath() + ZIP_SUFFIX);
+      FileUtils.zipFile(fileToSend, zipFile);
+      System.out.println("File compressed");
+
+      // get file size and send ack back
+      responseMap.put(FILE_SIZE_KEY, "" + zipFile.length());
+      responseMap.put(STATUS_KEY, STATUS_OK_VAL);
+      sendProtocolMessage(interStream, REQUEST_DOWNLOAD_ACK_VAL, responseMap);
+      
+      // read next request, if start_download, stream the file
+      requestMap = createProtocolMap(interStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
+      if (requestMap.get(REQUEST_KEY).equals(START_DOWNLOAD_VAL)) {
+        System.out.println("Sending file...");
+        FileInputStream zipInStream = new FileInputStream(zipFile);
+        interStream.writeFromInputStream(zipInStream, zipFile.length());
+        zipInStream.close();
+        System.out.println("File sent");
+      }
+      zipFile.delete();
+    } else {
+      // file does not exist
+      responseMap.put(STATUS_KEY, STATUS_INVALID_FILENAME_VAL);
+      sendProtocolMessage(interStream, REQUEST_DOWNLOAD_ACK_VAL, responseMap);
+    }
+  }
 
   // helper method to easily clear console
   private static void clear_console() {
