@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 public class DesktopClient {
   public enum CLIENT_OPTIONS { UPLOAD, DOWNLOAD, REMOVE, LIST, STATS, EXIT }
+  public static final File CLIENT_DIR = new File("iofiles/client");
 
   public static void main(String[] args) throws IOException {
     // main switch for option handling
@@ -32,7 +33,7 @@ public class DesktopClient {
             break;
         }
       } catch (IOException e) {
-        System.out.println("Could not connect to intermediate server: " + e.getMessage());
+        System.out.printf(DesktopClientStrings.BAD_INTER_FORMAT + '\n', e.getMessage());
       }
     }
   }
@@ -53,16 +54,15 @@ public class DesktopClient {
     // loop as long as input isn't valid
     while (!validInput) {
       // prompt user
-      System.out.println("\n1. Upload\n2. Download\n3. Remove\n4. List\n5. Stats\n6. Exit");
-      System.out.println("Select a command (input corresponding number)");
+      System.out.println('\n' + DesktopClientStrings.OPTIONS_PROMPT);
 
       // check validity of input
       if (!input.hasNextInt()) {
-        System.out.println("\nPlease input a number");
+        System.out.println('\n' + DesktopClientStrings.INPUT_NUMBER_PROMPT);
         input.nextLine();
       } else if ((commandNum = input.nextInt()) < 1
           || commandNum > (CLIENT_OPTIONS.values().length)) {
-        System.out.println("\nInvalid number");
+        System.out.println('\n' + DesktopClientStrings.INVALID_NUMBER_PROMPT);
       } else {
         validInput = true;
       }
@@ -86,7 +86,7 @@ public class DesktopClient {
 
     // loop until valid file from user
     while (!validFile) {
-      System.out.print("\nEnter the file path to upload: ");
+      System.out.print('\n' + DesktopClientStrings.FILE_PATH_PROMPT);
       String lineInput = input.nextLine();
 
       // exit if just enter space
@@ -99,7 +99,7 @@ public class DesktopClient {
       if (fileToSend.exists()) {
         validFile = true;
       } else {
-        System.out.println("File does not exist, please try again");
+        System.out.println(DesktopClientStrings.FILE_NOT_EXIST_MSG);
       }
     }
 
@@ -107,42 +107,42 @@ public class DesktopClient {
     File zipFile = new File(fileToSend.getPath() + ZIP_SUFFIX);
 
     // compress file
-    System.out.println("\nCompressing file...");
+    System.out.println('\n' + DesktopClientStrings.COMPRESSING_MSG);
     FileUtils.zipFile(fileToSend, zipFile);
-    System.out.println("File has been zipped\n");
+    System.out.println(DesktopClientStrings.COMPRESS_DONE_MSG + '\n');
 
     // create arg map to send
     HashMap<String, String> req = new HashMap<>();
     req.put(FILENAME_KEY, fileToSend.getName());
-    req.put(FILE_SIZE_KEY, "" + fileToSend.length());
+    req.put(FILE_SIZE_KEY, Long.toString(fileToSend.length()));
 
     // create tcp stream, signal server to start
     TcpStream interServerStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
-    HashMap<String, String> resMap = getResponse(interServerStream, req, UPLOAD_START_VAL);
+    HashMap<String, String> resMap = requestAndResponse(interServerStream, req, UPLOAD_START_VAL);
 
     // handle status types
     switch (resMap.get(STATUS_KEY)) {
       case STATUS_BAD_STORAGE_VAL:
-        System.out.println("Could not connect to storage");
+        System.out.println(DesktopClientStrings.BAD_STORAGE_MSG);
         break;
 
       case STATUS_INVALID_FILENAME_VAL:
-        System.out.println("File name \"" + fileToSend.getName() + "\" already exists on storage");
+        System.out.printf(
+            DesktopClientStrings.INVALID_FILE_UPLOAD_FORMAT + '\n', fileToSend.getName());
         break;
 
       case STATUS_OK_VAL:
-        System.out.println("Uploading file...");
+        System.out.println(DesktopClientStrings.UPLOADING_MSG);
 
         FileInputStream zipFileIn = new FileInputStream(zipFile);
         interServerStream.writeFromInputStream(zipFileIn, zipFile.length());
 
         zipFileIn.close();
-        System.out.println("Upload complete");
+        System.out.println(DesktopClientStrings.UPLOADING_DONE_MSG);
 
         // clean up streams
-        System.out.println("Status response: "
-            + createProtocolMap(interServerStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR)
-                  .get(STATUS_KEY));
+        System.out.printf(DesktopClientStrings.STATUS_RESPONSE_FORMAT + '\n',
+            createProtocolMap(interServerStream.readMessage()).get(STATUS_KEY));
         interServerStream.close();
         break;
     }
@@ -152,8 +152,13 @@ public class DesktopClient {
 
   private static void handleDownload(Scanner input) throws IOException {
     // get file name from user
-    System.out.print("Enter file name to download: ");
+    System.out.print('\n' + DesktopClientStrings.FILE_NAME_PROMPT);
     String filename = input.nextLine();
+
+    // if blankline, exit
+    if (filename.isEmpty()) {
+      return;
+    }
 
     // put file name as arg
     HashMap<String, String> reqMap = new HashMap<>();
@@ -161,22 +166,21 @@ public class DesktopClient {
 
     // send req to server
     TcpStream interStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
-    HashMap<String, String> resMap = getResponse(interStream, reqMap, REQUEST_DOWNLOAD_VAL);
+    HashMap<String, String> resMap = requestAndResponse(interStream, reqMap, REQUEST_DOWNLOAD_VAL);
 
     // read response and act accordingly
     switch (resMap.get(STATUS_KEY)) {
       case STATUS_BAD_STORAGE_VAL:
-        System.out.println("Could not connect to storage");
+        System.out.println(DesktopClientStrings.BAD_STORAGE_MSG);
         break;
 
       case STATUS_INVALID_FILENAME_VAL:
-        System.out.println("File does not exist on storage");
+        System.out.println(DesktopClientStrings.FILE_NOT_ON_STORAGE_MSG);
         break;
 
       case STATUS_OK_VAL:
 
         // create files to hold download / unzip
-        File destFile = new File(filename);
         File zipFile = new File(filename + ZIP_SUFFIX);
 
         // signal server to start download
@@ -185,26 +189,26 @@ public class DesktopClient {
         sendProtocolMessage(interStream, START_DOWNLOAD_VAL, reqMap);
 
         // download contents
-        System.out.println("\nDownloading file...");
+        System.out.println('\n' + DesktopClientStrings.DOWNLOADING_MSG);
         interStream.readToOutputStream(zipOut, Long.parseLong(resMap.get(FILE_SIZE_KEY)));
         zipOut.close();
-        System.out.println("File downloaded");
+        System.out.println(DesktopClientStrings.DOWNLOAD_DONE_MSG);
 
         // unzip
-        System.out.println("\nDecompressing file...");
-        FileUtils.unzipFile(zipFile, destFile);
-        System.out.println("File decompressed");
+        System.out.println('\n' + DesktopClientStrings.UNZIPPING_MSG);
+        FileUtils.unzipFile(zipFile, CLIENT_DIR);
+        System.out.println(DesktopClientStrings.UNZIP_DONE_MSG);
 
         zipFile.delete();
     }
   }
 
-  private static HashMap<String, String> getResponse(
+  private static HashMap<String, String> requestAndResponse(
       TcpStream stream, HashMap<String, String> argMap, String requestType) throws IOException {
     // attempt to connect to server
     HashMap<String, String> resMap = new HashMap<>();
     sendProtocolMessage(stream, requestType, argMap);
-    resMap = createProtocolMap(stream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
+    resMap = createProtocolMap(stream.readMessage());
 
     return resMap;
   }

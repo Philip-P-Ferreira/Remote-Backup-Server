@@ -10,13 +10,14 @@ public class ServerProtocol {
   public static final String REQUEST_KEY = "type";
 
   // request/response type values
+  public static final String ACK_SUFFIX = "_ACK";
   public static final String UPLOAD_START_VAL = "upload_start";
-  public static final String UPLOAD_START_ACK_VAL = "upload_start_ack";
+  public static final String UPLOAD_START_ACK_VAL = "upload_start" + ACK_SUFFIX;
   public static final String UPLOAD_RECEIVED_VAL = "upload_received";
   public static final String GET_INFO_VAL = "get_info";
   public static final String INFO_RESPONSE_VAL = "info";
   public static final String REQUEST_DOWNLOAD_VAL = "request_download";
-  public static final String REQUEST_DOWNLOAD_ACK_VAL = "request_download_ack";
+  public static final String REQUEST_DOWNLOAD_ACK_VAL = "request_download" + ACK_SUFFIX;
   public static final String START_DOWNLOAD_VAL = "start_download";
 
   // argument keys
@@ -44,6 +45,7 @@ public class ServerProtocol {
   // public static final String INTERSERVER_ADDRESS = "18.219.79.157";
 
   public static final String ZIP_SUFFIX = ".zip";
+
   /**
    * createProtocolMap -
    * create a hashmap of String-String pairs, where pairs are delimited by
@@ -65,6 +67,17 @@ public class ServerProtocol {
     }
 
     return map;
+  }
+
+  /**
+   * createProtocolMap -
+   * Overloaded function for the common case of a request / response map
+   *
+   * @param str - String to turn into hashmap
+   * @return
+   */
+  public static HashMap<String, String> createProtocolMap(String str) {
+    return createProtocolMap(str, PAIR_DELIM, PAIR_SEPARATOR);
   }
 
   /**

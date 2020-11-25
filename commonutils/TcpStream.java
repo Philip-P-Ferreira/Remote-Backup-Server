@@ -3,7 +3,7 @@ package commonutils;
 import java.io.*;
 import java.net.*;
 
-public class TcpStream {
+public class TcpStream implements Closeable {
   private Socket socket;
   private InputStream inStream;
   private OutputStream outStream;
@@ -17,9 +17,9 @@ public class TcpStream {
     outStream = socket.getOutputStream();
   }
 
-  // Alt constructor (from a Socket)
-  public TcpStream(Socket socket) throws IOException {
-    this.socket = socket;
+  // Alt constructor (from a Server Socket)
+  public TcpStream(ServerSocket servSocket) throws IOException {
+    socket = servSocket.accept();
     inStream = socket.getInputStream();
     outStream = socket.getOutputStream();
   }

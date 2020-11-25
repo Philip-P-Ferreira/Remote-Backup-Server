@@ -6,8 +6,8 @@ import java.util.zip.*;
 public class FileUtils {
   /**
    * zipFile -
-   * Accepts two files. One file source to compress and one file desination to write compressed
-   * contents to. Uses recursive zip function to compress
+   * Accepts two files. One file source to compress and one file desination to
+   * write compressed contents to. Uses recursive zip function to compress
    *
    * @param fileToZip - File, source
    * @param zipFile - File desination
@@ -42,7 +42,6 @@ public class FileUtils {
         for (File childFile : children) {
           recurseZipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
         }
-
       } else {
         // if file, just add to zip archive
         FileInputStream fis = new FileInputStream(fileToZip);
@@ -72,6 +71,7 @@ public class FileUtils {
     byte[] buffer = new byte[1024];
     ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFile));
 
+    // for each entry, create a file
     ZipEntry zipEntry = zipIn.getNextEntry();
     while (zipEntry != null) {
       File newFile = newFile(unzippedDest, zipEntry);
@@ -103,13 +103,6 @@ public class FileUtils {
    */
   private static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
     File destFile = new File(destinationDir, zipEntry.getName());
-
-    String destDirPath = destinationDir.getCanonicalPath();
-    String destFilePath = destFile.getCanonicalPath();
-
-    if (!destFilePath.startsWith(destDirPath + File.separator)) {
-      throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
-    }
 
     return destFile;
   }

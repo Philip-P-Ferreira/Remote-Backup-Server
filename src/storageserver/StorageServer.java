@@ -6,9 +6,8 @@ import java.io.*;
 import java.util.HashMap;
 
 public class StorageServer {
-  // file constants
-  public static final String STORAGE_PATH = "iofiles/in/";
-  public static final File STORAGE_PATH_FILE = new File(STORAGE_PATH);
+  // file constant
+  public static final File STORAGE_DIR = new File("iofiles/storage");
 
   // number constants
   private static final int SLEEP_TIME = 1000;
@@ -34,6 +33,8 @@ public class StorageServer {
         try {
           // handle request type
           requestMap = createProtocolMap(interStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
+          System.out.print('\n');
+
           switch (requestMap.get(REQUEST_KEY)) {
             case UPLOAD_START_VAL:
               handleUpload(requestMap);
@@ -59,7 +60,7 @@ public class StorageServer {
     try {
       if (attemptCount == 0) {
         clear_console();
-        System.out.print(StorageStrings.ATTEMPTING_RECONNECT);
+        System.out.print('\n' + StorageStrings.ATTEMPTING_RECONNECT);
       }
       interStream = new TcpStream(INTERSERVER_ADDRESS, STORAGE_PORT);
 
@@ -67,7 +68,6 @@ public class StorageServer {
       attemptCount = 0;
       System.out.println('\n' + StorageStrings.CONNECTED_TO_INTER);
       return true;
-
     } catch (IOException e) {
       sleep();
       ++attemptCount;
@@ -83,9 +83,16 @@ public class StorageServer {
     }
   }
 
+  /**
+   * handleUpload -
+   * Performs all necessary actions to accept an upload from client
+   *
+   * @param req - Request map from client
+   * @throws IOException
+   */
   private static void handleUpload(HashMap<String, String> req) throws IOException {
     HashMap<String, String> res = new HashMap<>(); // map to send back
-    File fileToStore = new File(STORAGE_PATH + req.get(FILENAME_KEY));
+    File fileToStore = new File(STORAGE_DIR.getPath() + '/' + req.get(FILENAME_KEY));
 
     // if file exists, send invalid file name status
     if (fileToStore.exists()) {
@@ -112,37 +119,43 @@ public class StorageServer {
       sendProtocolMessage(interStream, UPLOAD_RECEIVED_VAL, res);
 
       // method to unzip file
-      FileUtils.unzipFile(zipFile, STORAGE_PATH_FILE);
+      FileUtils.unzipFile(zipFile, STORAGE_DIR);
       zipFile.delete(); // delete zip (already decompressed)
     }
   }
 
+  /**
+   * handleDownload -
+   * Performs all actions to send file to client
+   *
+   * @param requestMap - request map from client
+   * @throws IOException
+   */
   private static void handleDownload(HashMap<String, String> requestMap) throws IOException {
-    
     // Map to store response, file to send back
-    HashMap<String,String> responseMap = new HashMap<>();
-    File fileToSend = new File(STORAGE_PATH + requestMap.get(FILENAME_KEY));
+    HashMap<String, String> responseMap = new HashMap<>();
+    File fileToSend = new File(STORAGE_DIR.getPath() + '/' + requestMap.get(FILENAME_KEY));
 
     // if file exists, send a zip back
     if (fileToSend.exists()) {
-      System.out.println("Compressing file...");
+      System.out.println(StorageStrings.ZIPPING_START_MSG);
       File zipFile = new File(fileToSend.getPath() + ZIP_SUFFIX);
       FileUtils.zipFile(fileToSend, zipFile);
-      System.out.println("File compressed");
+      System.out.println(StorageStrings.ZIP_DONE_MSG);
 
       // get file size and send ack back
       responseMap.put(FILE_SIZE_KEY, "" + zipFile.length());
       responseMap.put(STATUS_KEY, STATUS_OK_VAL);
       sendProtocolMessage(interStream, REQUEST_DOWNLOAD_ACK_VAL, responseMap);
-      
+
       // read next request, if start_download, stream the file
       requestMap = createProtocolMap(interStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
       if (requestMap.get(REQUEST_KEY).equals(START_DOWNLOAD_VAL)) {
-        System.out.println("Sending file...");
+        System.out.println('\n' + StorageStrings.SENDING_START_MSG);
         FileInputStream zipInStream = new FileInputStream(zipFile);
         interStream.writeFromInputStream(zipInStream, zipFile.length());
         zipInStream.close();
-        System.out.println("File sent");
+        System.out.println(StorageStrings.SEND_DONE_MSG);
       }
       zipFile.delete();
     } else {
