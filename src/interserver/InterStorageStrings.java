@@ -1,4 +1,5 @@
-public class InterStorageStrings {
+public class InterStorageStrings
+{
     public static final String STARTING_UP_MSG = "Starting up intermediate server...";
     public static final String ACCEPT_FAIL_FORMAT = "Failed to accept: %s";
     public static final String NO_STREAM_TO_STORAGE_MSG = "No stream to storage";
@@ -13,6 +14,4 @@ public class InterStorageStrings {
     public static final String STARTING_DOWLOAD_MSG = "Starting download stream...";
     public static final String DOWNLOAD_DONE_MSG = "End of download stream";
     public static final String INVALID_FILE_ERROR_MSG = "Invalid file name from client";
-
-
 }
