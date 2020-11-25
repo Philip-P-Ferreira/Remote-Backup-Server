@@ -121,14 +121,17 @@ public class InterServer
         Runnable connectStorage = new Runnable() {
             public void run()
             {
-                try
+                while (true)
                 {
-                    storageStream = new TcpStream(storageSocket);
+                    try
+                    {
+                        storageStream = new TcpStream(storageSocket);
+                    }
+                    catch (IOException ignored)
+                    {
+                    }
+                    System.out.println(InterStorageStrings.CONNECTED_STORAGE_MSG);
                 }
-                catch (IOException ignored)
-                {
-                }
-                System.out.println(InterStorageStrings.CONNECTED_STORAGE_MSG);
             }
         };
         Thread thread = new Thread(connectStorage);
