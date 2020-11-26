@@ -145,7 +145,7 @@ public class DesktopClient
         req.put(FILE_SIZE_KEY, Long.toString(fileToSend.length()));
 
         // create tcp stream, signal server to start
-        TcpStream interServerStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
+        TcpStream interServerStream = makeInterStream();
         HashMap<String, String> resMap = requestAndResponse(interServerStream, UPLOAD_START_VAL, req);
 
         // handle status types
@@ -203,7 +203,7 @@ public class DesktopClient
         reqMap.put(FILENAME_KEY, filename);
 
         // send req to server
-        TcpStream interStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
+        TcpStream interStream = makeInterStream();
         HashMap<String, String> resMap = requestAndResponse(interStream, REQUEST_DOWNLOAD_VAL, reqMap);
 
         // read response and act accordingly
@@ -258,8 +258,7 @@ public class DesktopClient
         HashMap<String, String> requestMap = new HashMap<>();
         requestMap.put(FILENAME_KEY, filename);
 
-        TcpStream interStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
-        HashMap<String, String> responseMap = requestAndResponse(interStream, REMOVE_FILE_VAL, requestMap);
+        HashMap<String, String> responseMap = requestAndResponse(makeInterStream(), REMOVE_FILE_VAL, requestMap);
 
         switch (responseMap.get(STATUS_KEY))
         {
@@ -331,11 +330,27 @@ public class DesktopClient
         return resMap;
     }
 
+    /**
+     * requestAndResponse -
+     * Overloaded function, sends request without any args
+     * 
+     * @param stream - TcpStream, connection to intermediate server
+     * @param requestType - Stringm, type of request
+     * @return - Map, response from server
+     * @throws IOException
+     */
     private static HashMap<String, String> requestAndResponse(TcpStream stream, String requestType) throws IOException
     {
         return requestAndResponse(stream, requestType, new HashMap<>());
     }
 
+    /**
+     * makeInterStream -
+     * Returns a TcpStream to the intermediate server
+     * 
+     * @return - TcpSream, to interstream
+     * @throws IOException
+     */
     private static TcpStream makeInterStream() throws IOException
     {
         return new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);

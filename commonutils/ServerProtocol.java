@@ -113,6 +113,14 @@ public class ServerProtocol
         stream.writeMessage(msg);
     }
 
+    /**
+     * sendProtocolMessage -
+     * Overloaded function, send message without any arguments
+     * 
+     * @param stream - TcpStream, communicates to a socket
+     * @param type - command type value
+     * @throws IOException
+     */
     public static void sendProtocolMessage(TcpStream stream, String type) throws IOException
     {
         sendProtocolMessage(stream, type, new HashMap<String, String>());
