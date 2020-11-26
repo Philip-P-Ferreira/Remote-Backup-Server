@@ -13,7 +13,7 @@ public class DesktopClient
     public static void main(String[] args) throws IOException
     {
         // main switch for option handling
-        Scanner console = new Scanner(System.in);
+        final Scanner console = new Scanner(System.in);
         boolean session = true;
 
         while (session)
@@ -32,6 +32,10 @@ public class DesktopClient
 
                 case REMOVE:
                     handleRemove(console);
+                    break;
+
+                case LIST:
+                    handleList();
                     break;
 
                 case EXIT:
@@ -85,6 +89,7 @@ public class DesktopClient
             }
         }
         input.nextLine(); // burn new line
+        System.out.print('\n');
         return CLIENT_OPTIONS.values()[commandNum - 1];
     }
 
@@ -105,7 +110,7 @@ public class DesktopClient
         // loop until valid file from user
         while (!validFile)
         {
-            System.out.print('\n' + DesktopClientStrings.FILE_PATH_PROMPT);
+            System.out.print(DesktopClientStrings.FILE_PATH_PROMPT);
             String lineInput = input.nextLine();
 
             // exit if just enter space
@@ -122,7 +127,7 @@ public class DesktopClient
             }
             else
             {
-                System.out.println(DesktopClientStrings.FILE_NOT_EXIST_MSG);
+                System.out.println(DesktopClientStrings.FILE_NOT_EXIST_MSG + '\n');
             }
         }
 
@@ -141,7 +146,7 @@ public class DesktopClient
 
         // create tcp stream, signal server to start
         TcpStream interServerStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
-        HashMap<String, String> resMap = requestAndResponse(interServerStream, req, UPLOAD_START_VAL);
+        HashMap<String, String> resMap = requestAndResponse(interServerStream, UPLOAD_START_VAL, req);
 
         // handle status types
         switch (resMap.get(STATUS_KEY))
@@ -173,10 +178,18 @@ public class DesktopClient
         zipFile.delete();
     }
 
+    /**
+     * handleDownload -
+     * Using the passed in scanner, get a file name from user to download from storage.
+     * Then attempt to download file. Handle if file exists or does not
+     *
+     * @param input - Scanner, user input
+     * @throws IOException
+     */
     private static void handleDownload(Scanner input) throws IOException
     {
         // get file name from user
-        System.out.print('\n' + DesktopClientStrings.FILE_NAME_PROMPT);
+        System.out.print(DesktopClientStrings.FILE_NAME_PROMPT);
         String filename = input.nextLine();
 
         // if blankline, exit
@@ -191,7 +204,7 @@ public class DesktopClient
 
         // send req to server
         TcpStream interStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
-        HashMap<String, String> resMap = requestAndResponse(interStream, reqMap, REQUEST_DOWNLOAD_VAL);
+        HashMap<String, String> resMap = requestAndResponse(interStream, REQUEST_DOWNLOAD_VAL, reqMap);
 
         // read response and act accordingly
         switch (resMap.get(STATUS_KEY))
@@ -229,16 +242,24 @@ public class DesktopClient
         }
     }
 
+    /**
+     * handleRemove -
+     * Using scanner, get a file name to delete from storage.
+     * Handles if file exists or not
+     *
+     * @param input - Scanner, user input
+     * @throws IOException
+     */
     private static void handleRemove(Scanner input) throws IOException
     {
-        System.out.print('\n' + DesktopClientStrings.FILE_NAME_RM_PROMPT);
+        System.out.print(DesktopClientStrings.FILE_NAME_RM_PROMPT);
         String filename = input.nextLine();
 
         HashMap<String, String> requestMap = new HashMap<>();
         requestMap.put(FILENAME_KEY, filename);
 
         TcpStream interStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
-        HashMap<String, String> responseMap = requestAndResponse(interStream, requestMap, REMOVE_FILE_VAL);
+        HashMap<String, String> responseMap = requestAndResponse(interStream, REMOVE_FILE_VAL, requestMap);
 
         switch (responseMap.get(STATUS_KEY))
         {
@@ -254,8 +275,53 @@ public class DesktopClient
         }
     }
 
-    private static HashMap<String, String> requestAndResponse(TcpStream stream, HashMap<String, String> argMap,
-                                                              String requestType) throws IOException
+    /**
+     * handleList -
+     * Gets list of file from storage and displays them (or appropriate message if none or error)
+     *
+     * @throws IOException
+     */
+    private static void handleList() throws IOException
+    {
+        System.out.println(DesktopClientStrings.LISTING_START_MSG);
+
+        final HashMap<String, String> responseMap = requestAndResponse(makeInterStream(), LIST_FILES_VAL);
+        switch (responseMap.get(STATUS_KEY))
+        {
+        case STATUS_BAD_STORAGE_VAL:
+            System.out.println(DesktopClientStrings.BAD_STORAGE_MSG);
+            break;
+
+        case STATUS_OK_VAL:
+            final String[] fileList = responseMap.get(FILE_LIST_KEY).split(FILE_NAME_DELIM);
+
+            if (fileList[0].isEmpty())
+            {
+                System.out.println(DesktopClientStrings.NO_FILES_TO_LIST_MSG);
+            }
+            else
+            {
+                for (final String filename : responseMap.get(FILE_LIST_KEY).split(FILE_NAME_DELIM))
+                {
+                    System.out.println(filename);
+                }
+            }
+        }
+    }
+
+    /**
+     * requestAndResponse -
+     * Sends a request of type requestType with argMap to the given TcpStream.
+     * Then reads a respone from the TcpStream.
+     *
+     * @param stream - TcpStream, connection to intermediate server
+     * @param argMap - Map, contains args to send in request
+     * @param requestType - String, type of request
+     * @return - Map, response from server
+     * @throws IOException
+     */
+    private static HashMap<String, String> requestAndResponse(TcpStream stream, String requestType,
+                                                              HashMap<String, String> argMap) throws IOException
     {
         // attempt to connect to server
         HashMap<String, String> resMap = new HashMap<>();
@@ -263,5 +329,15 @@ public class DesktopClient
         resMap = createProtocolMap(stream.readMessage());
 
         return resMap;
+    }
+
+    private static HashMap<String, String> requestAndResponse(TcpStream stream, String requestType) throws IOException
+    {
+        return requestAndResponse(stream, requestType, new HashMap<>());
+    }
+
+    private static TcpStream makeInterStream() throws IOException
+    {
+        return new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
     }
 }

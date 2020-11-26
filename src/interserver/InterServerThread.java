@@ -42,9 +42,13 @@ public class InterServerThread implements Runnable
                 final HashMap<String, String> storageResponseMap =
                     createProtocolMap(storageResponseStr, PAIR_DELIM, PAIR_SEPARATOR);
 
+                // always send response to client
+                clientStream.writeMessage(storageResponseStr);
+
                 // handle based on type
-                clientStream.writeMessage(storageResponseStr); // always send response to client
-                switch (requestMap.get(REQUEST_KEY))
+                final String requestType = requestMap.get(REQUEST_KEY);
+                System.out.print('\n');
+                switch (requestType)
                 {
                 case UPLOAD_START_VAL:
                     handleUpload(requestMap, storageResponseMap);
@@ -55,7 +59,7 @@ public class InterServerThread implements Runnable
                     break;
 
                 default:
-                    // all other request, simply forward messages
+                    System.out.printf(InterServerStrings.REQUEST_TYPE_FORMAT + '\n', requestType);
                     break;
                 }
             }
@@ -64,7 +68,7 @@ public class InterServerThread implements Runnable
         }
         catch (IOException e)
         {
-            System.out.printf(InterStorageStrings.NO_REACH_CLIENT_FORMAT + '\n', e.getMessage());
+            System.out.printf(InterServerStrings.NO_REACH_CLIENT_FORMAT + '\n', e.getMessage());
         }
     }
 
@@ -79,22 +83,24 @@ public class InterServerThread implements Runnable
      */
     private void handleUpload(HashMap<String, String> request, HashMap<String, String> response) throws IOException
     {
-        System.out.println('\n' + InterStorageStrings.UPLOAD_REQUESTED_MSG);
+        System.out.println(InterServerStrings.UPLOAD_REQUESTED_MSG);
+
         // if good status from storage, stream upload
         final String status = response.get(STATUS_KEY);
         if (status != null && status.equals(STATUS_OK_VAL))
         {
-            System.out.println(InterStorageStrings.STARTING_UPLOAD_MSG);
-            long fileSize = Long.parseLong(request.get(FILE_SIZE_KEY));
+            System.out.println(InterServerStrings.STARTING_UPLOAD_MSG);
+
+            final long fileSize = Long.parseLong(request.get(FILE_SIZE_KEY));
             InterServer.streamToStorage(clientStream, fileSize);
-            System.out.println(InterStorageStrings.UPLOAD_DONE_MSG);
+            System.out.println(InterServerStrings.UPLOAD_DONE_MSG);
 
             clientStream.writeMessage(InterServer.getMessageFromStorage());
             clientStream.close();
         }
         else
         {
-            System.out.println(InterStorageStrings.FILE_EXISTS_ERROR_MSG);
+            System.out.println(InterServerStrings.FILE_EXISTS_ERROR_MSG);
         }
     }
 
@@ -107,20 +113,20 @@ public class InterServerThread implements Runnable
      */
     private void handleDownload(HashMap<String, String> response) throws IOException
     {
-        System.out.println('\n' + InterStorageStrings.DOWNLOAD_REQUESTED_MSG);
+        System.out.println(InterServerStrings.DOWNLOAD_REQUESTED_MSG);
         // if good storage response, stream download
-        String status = response.get(STATUS_KEY);
+        final String status = response.get(STATUS_KEY);
         if (status != null && status.equals(STATUS_OK_VAL))
         {
             InterServer.forwardToStorage(clientStream.readMessage());
 
-            System.out.println(InterStorageStrings.STARTING_DOWLOAD_MSG);
+            System.out.println(InterServerStrings.STARTING_DOWLOAD_MSG);
             InterServer.streamToClient(clientStream, Long.parseLong(response.get(FILE_SIZE_KEY)));
-            System.out.println(InterStorageStrings.DOWNLOAD_DONE_MSG);
+            System.out.println(InterServerStrings.DOWNLOAD_DONE_MSG);
         }
         else
         {
-            System.out.println(InterStorageStrings.INVALID_FILE_ERROR_MSG);
+            System.out.println(InterServerStrings.INVALID_FILE_ERROR_MSG);
         }
     }
 }

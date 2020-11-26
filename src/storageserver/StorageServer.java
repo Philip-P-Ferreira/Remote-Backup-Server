@@ -51,6 +51,9 @@ public class StorageServer
                     case REMOVE_FILE_VAL:
                         handleRemove(requestMap);
                         break;
+                    case LIST_FILES_VAL:
+                        handleList();
+                        break;
                     default:
                         break;
                     }
@@ -209,9 +212,8 @@ public class StorageServer
      */
     private static void handleRemove(HashMap<String, String> req) throws IOException
     {
-
         // get file name
-        System.out.println();
+        System.out.println(StorageStrings.REMOVING_START_MSG);
         File fileToRm = new File(STORAGE_DIR.getPath() + '/' + req.get(FILENAME_KEY));
 
         // if exists, delete, otherwise invalid file
@@ -227,7 +229,32 @@ public class StorageServer
             System.out.printf(StorageStrings.FILE_NOT_EXIST_FORMAT + '\n', fileToRm.getName());
             responseMap.put(STATUS_KEY, STATUS_INVALID_FILENAME_VAL);
         }
-        sendProtocolMessage(interStream, REMOVE_FILE_VAL_ACK, responseMap);
+        sendProtocolMessage(interStream, REMOVE_FILE_ACK_VAL, responseMap);
+    }
+
+    /**
+     * handleList -
+     * Sends a list of files (if any) back to intermediate server
+     *
+     * @throws IOException
+     */
+    private static void handleList() throws IOException
+    {
+        System.out.println(StorageStrings.LIST_FILES_MSG);
+
+        // list files and compile into one string, separated by a comma
+        String[] files = STORAGE_DIR.list();
+        String fileResArg = "";
+        for (final String fileStr : files)
+        {
+            fileResArg += (fileStr + FILE_NAME_DELIM);
+        }
+
+        // send back
+        HashMap<String, String> resMap = new HashMap<>();
+        resMap.put(STATUS_KEY, STATUS_OK_VAL);
+        resMap.put(FILE_LIST_KEY, fileResArg);
+        sendProtocolMessage(interStream, LIST_RESPONSE_VAL, resMap);
     }
 
     /**

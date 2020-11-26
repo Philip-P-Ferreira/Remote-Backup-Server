@@ -22,4 +22,6 @@ public class DesktopClientStrings
     public static final String UNZIP_DONE_MSG = "File decompressed";
     public static final String FILE_NAME_RM_PROMPT = "Enter file name to delete: ";
     public static final String REMOVE_FILE_SUCCESS_MSG = "File deleted successfully";
+    public static final String LISTING_START_MSG = "Lisiting files/directories on storage...";
+    public static final String NO_FILES_TO_LIST_MSG = "No files on storage";
 }

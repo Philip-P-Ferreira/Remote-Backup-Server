@@ -16,7 +16,7 @@ public class InterServer
         // establish respective sockets and storage stream
         storageSocket = new ServerSocket(STORAGE_PORT);
         clientSocket = new ServerSocket(CLIENT_PORT);
-        System.out.println('\n' + InterStorageStrings.STARTING_UP_MSG);
+        System.out.println('\n' + InterServerStrings.STARTING_UP_MSG);
 
         // accept storage server
         connectStorage();
@@ -33,7 +33,7 @@ public class InterServer
             }
             catch (IOException e)
             {
-                System.out.printf(InterStorageStrings.ACCEPT_FAIL_FORMAT + '\n', e.getMessage());
+                System.out.printf(InterServerStrings.ACCEPT_FAIL_FORMAT + '\n', e.getMessage());
             }
         }
         storageStream.close();
@@ -52,7 +52,7 @@ public class InterServer
     {
         if (storageStream == null)
         {
-            throw new IOException(InterStorageStrings.NO_STREAM_TO_STORAGE_MSG);
+            throw new IOException(InterServerStrings.NO_STREAM_TO_STORAGE_MSG);
         }
         storageStream.writeMessage(req);
     }
@@ -79,7 +79,7 @@ public class InterServer
         }
         catch (IOException e)
         {
-            System.out.println(InterStorageStrings.NO_CONNECT_STORAGE_MSG);
+            System.out.println(InterServerStrings.NO_CONNECT_STORAGE_MSG);
         }
 
         return res;
@@ -130,7 +130,7 @@ public class InterServer
                     catch (IOException ignored)
                     {
                     }
-                    System.out.println(InterStorageStrings.CONNECTED_STORAGE_MSG);
+                    System.out.println(InterServerStrings.CONNECTED_STORAGE_MSG);
                 }
             }
         };

@@ -21,13 +21,16 @@ public class ServerProtocol
     public static final String REQUEST_DOWNLOAD_ACK_VAL = REQUEST_DOWNLOAD_VAL + ACK_SUFFIX;
     public static final String START_DOWNLOAD_VAL = "start_download";
     public static final String REMOVE_FILE_VAL = "remove_file";
-    public static final String REMOVE_FILE_VAL_ACK = REMOVE_FILE_VAL + ACK_SUFFIX;
+    public static final String REMOVE_FILE_ACK_VAL = REMOVE_FILE_VAL + ACK_SUFFIX;
+    public static final String LIST_FILES_VAL = "list_files";
+    public static final String LIST_RESPONSE_VAL = "list";
 
     // argument keys
     public static final String STATUS_KEY = "status";
     public static final String FILENAME_KEY = "filename";
     public static final String FILE_SIZE_KEY = "file_size";
     public static final String INFO_KEY = "info";
+    public static final String FILE_LIST_KEY = "files";
 
     // status values
     public static final String STATUS_OK_VAL = "ok";
@@ -35,11 +38,14 @@ public class ServerProtocol
     public static final String STATUS_INVALID_FILENAME_VAL = "invalid_filename";
 
     // info response constants
-    public static final char INFO_PAIR_DELIM = ';';
-    public static final char INFO_PAIR_SEPARATOR = '>';
+    public static final String INFO_PAIR_DELIM = ";";
+    public static final String INFO_PAIR_SEPARATOR = ">";
     public static final String INFO_MAX_CAPACITY_KEY = "max_capacity";
     public static final String INFO_CAPACITY_USAGE = "capacity_usage";
     public static final String LAST_WRITE = "last_write";
+
+    // list response constants
+    public static final String FILE_NAME_DELIM = ",";
 
     // networks constants
     public static final int STORAGE_PORT = 6788;
@@ -105,5 +111,10 @@ public class ServerProtocol
             msg += PAIR_DELIM + pair.getKey() + PAIR_SEPARATOR + pair.getValue();
         }
         stream.writeMessage(msg);
+    }
+
+    public static void sendProtocolMessage(TcpStream stream, String type) throws IOException
+    {
+        sendProtocolMessage(stream, type, new HashMap<String, String>());
     }
 }
