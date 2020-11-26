@@ -20,4 +20,6 @@ public class DesktopClientStrings
     public static final String DOWNLOAD_DONE_MSG = "File downloaded";
     public static final String UNZIPPING_MSG = "Decompressing file...";
     public static final String UNZIP_DONE_MSG = "File decompressed";
+    public static final String FILE_NAME_RM_PROMPT = "Enter file name to delete: ";
+    public static final String REMOVE_FILE_SUCCESS_MSG = "File deleted successfully";
 }

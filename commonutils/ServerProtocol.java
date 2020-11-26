@@ -11,15 +11,17 @@ public class ServerProtocol
     public static final String REQUEST_KEY = "type";
 
     // request/response type values
-    public static final String ACK_SUFFIX = "_ACK";
+    public static final String ACK_SUFFIX = "_ack";
     public static final String UPLOAD_START_VAL = "upload_start";
-    public static final String UPLOAD_START_ACK_VAL = "upload_start" + ACK_SUFFIX;
+    public static final String UPLOAD_START_ACK_VAL = UPLOAD_START_VAL + ACK_SUFFIX;
     public static final String UPLOAD_RECEIVED_VAL = "upload_received";
     public static final String GET_INFO_VAL = "get_info";
     public static final String INFO_RESPONSE_VAL = "info";
     public static final String REQUEST_DOWNLOAD_VAL = "request_download";
-    public static final String REQUEST_DOWNLOAD_ACK_VAL = "request_download" + ACK_SUFFIX;
+    public static final String REQUEST_DOWNLOAD_ACK_VAL = REQUEST_DOWNLOAD_VAL + ACK_SUFFIX;
     public static final String START_DOWNLOAD_VAL = "start_download";
+    public static final String REMOVE_FILE_VAL = "remove_file";
+    public static final String REMOVE_FILE_VAL_ACK = REMOVE_FILE_VAL + ACK_SUFFIX;
 
     // argument keys
     public static final String STATUS_KEY = "status";

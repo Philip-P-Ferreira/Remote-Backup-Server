@@ -48,6 +48,9 @@ public class StorageServer
                     case REQUEST_DOWNLOAD_VAL:
                         handleDownload(requestMap);
                         break;
+                    case REMOVE_FILE_VAL:
+                        handleRemove(requestMap);
+                        break;
                     default:
                         break;
                     }
@@ -63,11 +66,18 @@ public class StorageServer
         interStream.close();
     }
 
-    // helper method to connect to server, returns corresponding boolean
+    /**
+     * connectToInterServer -
+     * helper function to connect to the intermediate server repeatedly while
+     * displaying a formatted status message
+     *
+     * @return - boolean, was able to connect or not
+     */
     private static boolean connectToInterServer()
     {
         try
         {
+            // format output based on attempts
             if (attemptCount == 0)
             {
                 clear_console();
@@ -88,7 +98,6 @@ public class StorageServer
             // add to output based on how many times we've tried
             if (attemptCount == REPEAT_COUNT)
             {
-                clear_console();
                 attemptCount = 0;
             }
             else if (attemptCount != 0)
@@ -188,6 +197,56 @@ public class StorageServer
             responseMap.put(STATUS_KEY, STATUS_INVALID_FILENAME_VAL);
             sendProtocolMessage(interStream, REQUEST_DOWNLOAD_ACK_VAL, responseMap);
         }
+    }
+
+    /**
+     * handleRemove -
+     * Attempts to delete the file specified in the request map. If it does not exist, send back
+     * invalid file name status, otherwise ok status
+     *
+     * @param req - Map, requestt
+     * @throws IOException
+     */
+    private static void handleRemove(HashMap<String, String> req) throws IOException
+    {
+
+        // get file name
+        System.out.println();
+        File fileToRm = new File(STORAGE_DIR.getPath() + '/' + req.get(FILENAME_KEY));
+
+        // if exists, delete, otherwise invalid file
+        HashMap<String, String> responseMap = new HashMap<>();
+        if (fileToRm.exists())
+        {
+            deleteFile(fileToRm);
+            System.out.printf(StorageStrings.REMOVE_DONE_FORMAT + '\n', fileToRm.getName());
+            responseMap.put(STATUS_KEY, STATUS_OK_VAL);
+        }
+        else
+        {
+            System.out.printf(StorageStrings.FILE_NOT_EXIST_FORMAT + '\n', fileToRm.getName());
+            responseMap.put(STATUS_KEY, STATUS_INVALID_FILENAME_VAL);
+        }
+        sendProtocolMessage(interStream, REMOVE_FILE_VAL_ACK, responseMap);
+    }
+
+    /**
+     * deleteFile -
+     * Recursively deletes a file and any potential sub files if a directory
+     *
+     * @param file - file to delete, can be file or directory
+     */
+    public static void deleteFile(File file)
+    {
+
+        if (file.isDirectory())
+        {
+            for (final File subFile : file.listFiles())
+            {
+                deleteFile(subFile);
+            }
+        }
+        file.delete();
     }
 
     // helper method to easily clear console

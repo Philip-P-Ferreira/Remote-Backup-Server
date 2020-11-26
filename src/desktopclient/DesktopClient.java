@@ -30,6 +30,10 @@ public class DesktopClient
                     handleDownload(console);
                     break;
 
+                case REMOVE:
+                    handleRemove(console);
+                    break;
+
                 case EXIT:
                     session = false;
                     break;
@@ -222,6 +226,31 @@ public class DesktopClient
             System.out.println(DesktopClientStrings.UNZIP_DONE_MSG);
 
             zipFile.delete();
+        }
+    }
+
+    private static void handleRemove(Scanner input) throws IOException
+    {
+        System.out.print('\n' + DesktopClientStrings.FILE_NAME_RM_PROMPT);
+        String filename = input.nextLine();
+
+        HashMap<String, String> requestMap = new HashMap<>();
+        requestMap.put(FILENAME_KEY, filename);
+
+        TcpStream interStream = new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
+        HashMap<String, String> responseMap = requestAndResponse(interStream, requestMap, REMOVE_FILE_VAL);
+
+        switch (responseMap.get(STATUS_KEY))
+        {
+        case STATUS_BAD_STORAGE_VAL:
+            System.out.println(DesktopClientStrings.BAD_STORAGE_MSG);
+            break;
+        case STATUS_INVALID_FILENAME_VAL:
+            System.out.println(DesktopClientStrings.FILE_NOT_ON_STORAGE_MSG);
+            break;
+        case STATUS_OK_VAL:
+            System.out.println(DesktopClientStrings.REMOVE_FILE_SUCCESS_MSG);
+            break;
         }
     }
 

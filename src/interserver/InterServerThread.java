@@ -43,7 +43,7 @@ public class InterServerThread implements Runnable
                     createProtocolMap(storageResponseStr, PAIR_DELIM, PAIR_SEPARATOR);
 
                 // handle based on type
-                clientStream.writeMessage(storageResponseStr);
+                clientStream.writeMessage(storageResponseStr); // always send response to client
                 switch (requestMap.get(REQUEST_KEY))
                 {
                 case UPLOAD_START_VAL:
