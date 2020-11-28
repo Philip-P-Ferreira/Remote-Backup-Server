@@ -24,4 +24,8 @@ public class DesktopClientStrings
     public static final String REMOVE_FILE_SUCCESS_MSG = "File deleted successfully";
     public static final String LISTING_START_MSG = "Lisiting files/directories on storage...";
     public static final String NO_FILES_TO_LIST_MSG = "No files on storage";
+    public static final String STATS_START_MSG = "Geting storage stat...";
+    public static final String STATS_MAX_FORMAT = "Total storage: %s";
+    public static final String STATS_FREE_FORMAT = "Free storage: %s";
+    public static final String STATS_LAST_WRITE_FOMAT = "Last modified: %s";
 }

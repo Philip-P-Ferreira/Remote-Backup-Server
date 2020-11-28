@@ -15,8 +15,8 @@ public class ServerProtocol
     public static final String UPLOAD_START_VAL = "upload_start";
     public static final String UPLOAD_START_ACK_VAL = UPLOAD_START_VAL + ACK_SUFFIX;
     public static final String UPLOAD_RECEIVED_VAL = "upload_received";
-    public static final String GET_INFO_VAL = "get_info";
-    public static final String INFO_RESPONSE_VAL = "info";
+    public static final String GET_STATS_VAL = "get_stats";
+    public static final String STATS_RESPONSE_VAL = "stats";
     public static final String REQUEST_DOWNLOAD_VAL = "request_download";
     public static final String REQUEST_DOWNLOAD_ACK_VAL = REQUEST_DOWNLOAD_VAL + ACK_SUFFIX;
     public static final String START_DOWNLOAD_VAL = "start_download";
@@ -29,7 +29,7 @@ public class ServerProtocol
     public static final String STATUS_KEY = "status";
     public static final String FILENAME_KEY = "filename";
     public static final String FILE_SIZE_KEY = "file_size";
-    public static final String INFO_KEY = "info";
+    public static final String STATS_KEY = "stats";
     public static final String FILE_LIST_KEY = "files";
 
     // status values
@@ -37,12 +37,12 @@ public class ServerProtocol
     public static final String STATUS_BAD_STORAGE_VAL = "bad_storage";
     public static final String STATUS_INVALID_FILENAME_VAL = "invalid_filename";
 
-    // info response constants
-    public static final String INFO_PAIR_DELIM = ";";
-    public static final String INFO_PAIR_SEPARATOR = ">";
-    public static final String INFO_MAX_CAPACITY_KEY = "max_capacity";
-    public static final String INFO_CAPACITY_USAGE = "capacity_usage";
-    public static final String LAST_WRITE = "last_write";
+    // STATS response constants
+    public static final String STATS_PAIR_DELIM = ";";
+    public static final String STATS_PAIR_SEPARATOR = ">";
+    public static final String STATS_MAX_CAPACITY_KEY = "max_capacity";
+    public static final String STATS_FREE_SPACE_KEY = "capacity_usage";
+    public static final String STATS_LAST_WRITE_KEY = "last_write";
 
     // list response constants
     public static final String FILE_NAME_DELIM = ",";
@@ -116,7 +116,7 @@ public class ServerProtocol
     /**
      * sendProtocolMessage -
      * Overloaded function, send message without any arguments
-     * 
+     *
      * @param stream - TcpStream, communicates to a socket
      * @param type - command type value
      * @throws IOException

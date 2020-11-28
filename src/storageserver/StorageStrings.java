@@ -14,4 +14,5 @@ public class StorageStrings
     public static final String REMOVE_DONE_FORMAT = "File \"%s\" has been deleted";
     public static final String FILE_NOT_EXIST_FORMAT = "File \"%s\" does not exists on storage";
     public static final String LIST_FILES_MSG = "Fetching list of files...";
+    public static final String GET_STATS_MSG = "Fetching storage stats...";
 }

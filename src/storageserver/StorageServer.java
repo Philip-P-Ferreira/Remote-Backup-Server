@@ -4,6 +4,7 @@ import commonutils.FileUtils;
 import commonutils.TcpStream;
 import java.io.*;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 
 public class StorageServer
 {
@@ -38,8 +39,8 @@ public class StorageServer
                 {
                     // handle request type
                     requestMap = createProtocolMap(interStream.readMessage(), PAIR_DELIM, PAIR_SEPARATOR);
-                    System.out.print('\n');
 
+                    System.out.print('\n');
                     switch (requestMap.get(REQUEST_KEY))
                     {
                     case UPLOAD_START_VAL:
@@ -54,7 +55,8 @@ public class StorageServer
                     case LIST_FILES_VAL:
                         handleList();
                         break;
-                    default:
+                    case GET_STATS_VAL:
+                        handleStats();
                         break;
                     }
                 }
@@ -255,6 +257,39 @@ public class StorageServer
         resMap.put(STATUS_KEY, STATUS_OK_VAL);
         resMap.put(FILE_LIST_KEY, fileResArg);
         sendProtocolMessage(interStream, LIST_RESPONSE_VAL, resMap);
+    }
+
+    private static void handleStats() throws IOException
+    {
+
+        System.out.println(StorageStrings.GET_STATS_MSG);
+
+        // map to hold each stat
+        HashMap<String, String> statsMap = new HashMap<>();
+        statsMap.put(STATS_FREE_SPACE_KEY, Long.toString(STORAGE_DIR.getUsableSpace()));
+        statsMap.put(STATS_MAX_CAPACITY_KEY, Long.toString(STORAGE_DIR.getTotalSpace()));
+        statsMap.put(STATS_LAST_WRITE_KEY, Long.toString(STORAGE_DIR.lastModified()));
+
+        // custom functor to create stats string
+        class StatsBuilder implements BiConsumer<String, String>
+        {
+            String statsStr = "";
+
+            @Override public void accept(String key, String val)
+            {
+                statsStr += key + STATS_PAIR_SEPARATOR + val + STATS_PAIR_DELIM;
+            }
+        };
+
+        // build the stats string
+        StatsBuilder statsBuilder = new StatsBuilder();
+        statsMap.forEach(statsBuilder);
+
+        // send stats back
+        HashMap<String, String> resMap = new HashMap<>();
+        resMap.put(STATS_KEY, statsBuilder.statsStr);
+        resMap.put(STATUS_KEY, STATUS_OK_VAL);
+        sendProtocolMessage(interStream, STATS_RESPONSE_VAL, resMap);
     }
 
     /**

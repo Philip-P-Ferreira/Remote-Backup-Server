@@ -2,13 +2,17 @@ import static commonutils.ServerProtocol.*;
 
 import commonutils.*;
 import java.io.*;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.function.BiConsumer;
 
 public class DesktopClient
 {
     public enum CLIENT_OPTIONS { UPLOAD, DOWNLOAD, REMOVE, LIST, STATS, EXIT }
     public static final File CLIENT_DIR = new File("iofiles/client");
+    public static final String[] BYTE_SUFFIX_ARR = {"B", "kB", "MB", "GB", "TB"};
+    public static final int BYTE_CONVERSION_NUM = 1000;
 
     public static void main(String[] args) throws IOException
     {
@@ -38,11 +42,12 @@ public class DesktopClient
                     handleList();
                     break;
 
-                case EXIT:
-                    session = false;
+                case STATS:
+                    handleStats();
                     break;
 
-                default:
+                case EXIT:
+                    session = false;
                     break;
                 }
             }
@@ -309,6 +314,58 @@ public class DesktopClient
     }
 
     /**
+     * handleStats -
+     * Sends storage stats back to the client
+     * 
+     * @throws IOException
+     */
+    private static void handleStats() throws IOException
+    {
+
+        System.out.println(DesktopClientStrings.STATS_START_MSG);
+
+        // handle based on status response
+        final HashMap<String, String> responseMap = requestAndResponse(makeInterStream(), GET_STATS_VAL);
+        switch (responseMap.get(STATUS_KEY))
+        {
+
+        case STATUS_BAD_STORAGE_VAL:
+            System.out.println(DesktopClientStrings.BAD_STORAGE_MSG);
+            break;
+
+        case STATUS_OK_VAL:
+            HashMap<String, String> statsMap =
+                createProtocolMap(responseMap.get(STATS_RESPONSE_VAL), STATS_PAIR_DELIM, STATS_PAIR_SEPARATOR);
+
+            // extract each stats and print
+            statsMap.forEach(new BiConsumer<String, String>() {
+                @Override public void accept(String key, String val)
+                {
+
+                    String output;
+                    switch (key)
+                    {
+                    case STATS_MAX_CAPACITY_KEY:
+                        output = formatByteSize(Long.parseLong(val));
+                        System.out.printf(DesktopClientStrings.STATS_MAX_FORMAT + '\n', output);
+                        break;
+
+                    case STATS_FREE_SPACE_KEY:
+                        output = formatByteSize(Long.parseLong(val));
+                        System.out.printf(DesktopClientStrings.STATS_FREE_FORMAT + '\n', output);
+                        break;
+
+                    case STATS_LAST_WRITE_KEY:
+                        output = new Date(Long.parseLong(val)).toString();
+                        System.out.printf(DesktopClientStrings.STATS_LAST_WRITE_FOMAT + '\n', output);
+                        break;
+                    }
+                }
+            });
+        }
+    }
+
+    /**
      * requestAndResponse -
      * Sends a request of type requestType with argMap to the given TcpStream.
      * Then reads a respone from the TcpStream.
@@ -333,7 +390,7 @@ public class DesktopClient
     /**
      * requestAndResponse -
      * Overloaded function, sends request without any args
-     * 
+     *
      * @param stream - TcpStream, connection to intermediate server
      * @param requestType - Stringm, type of request
      * @return - Map, response from server
@@ -347,12 +404,23 @@ public class DesktopClient
     /**
      * makeInterStream -
      * Returns a TcpStream to the intermediate server
-     * 
+     *
      * @return - TcpSream, to interstream
      * @throws IOException
      */
     private static TcpStream makeInterStream() throws IOException
     {
         return new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
+    }
+
+    private static String formatByteSize(long byteSize) {
+
+        int suffixCount = 0; 
+        while (byteSize > BYTE_CONVERSION_NUM) {
+            ++suffixCount;
+            byteSize /= BYTE_CONVERSION_NUM;
+        }
+
+        return Long.toString(byteSize) + ' ' + BYTE_SUFFIX_ARR[suffixCount];
     }
 }
