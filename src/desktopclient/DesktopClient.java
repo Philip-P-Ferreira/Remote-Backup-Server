@@ -125,7 +125,7 @@ public class DesktopClient
             }
 
             // create file and check if exists
-            fileToSend = new File(lineInput);
+            fileToSend = new File(lineInput.trim());
             if (fileToSend.exists())
             {
                 validFile = true;
@@ -147,7 +147,7 @@ public class DesktopClient
         // create arg map to send
         HashMap<String, String> req = new HashMap<>();
         req.put(FILENAME_KEY, fileToSend.getName());
-        req.put(FILE_SIZE_KEY, Long.toString(fileToSend.length()));
+        req.put(FILE_SIZE_KEY, Long.toString(zipFile.length()));
 
         // create tcp stream, signal server to start
         TcpStream interServerStream = makeInterStream();
