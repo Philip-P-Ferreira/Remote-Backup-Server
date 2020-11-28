@@ -144,13 +144,15 @@ public class TcpStream implements Closeable
     {
         BufferedOutputStream buffOut = new BufferedOutputStream(out);
 
+        long bytesRead = 0;
         int c = 0;
         byte[] buff = new byte[BUFFER_SIZE];
 
-        for (long i = 0; i < sizeInBytes; i += BUFFER_SIZE)
-        {
+        while (bytesRead != sizeInBytes) {
             c = in.read(buff);
             buffOut.write(buff, 0, c);
+
+            bytesRead += c;
         }
         buffOut.flush();
     }

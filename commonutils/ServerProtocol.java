@@ -50,8 +50,8 @@ public class ServerProtocol
     // networks constants
     public static final int STORAGE_PORT = 6788;
     public static final int CLIENT_PORT = 6789;
-    public static final String INTERSERVER_ADDRESS = "127.0.0.1";
-    // public static final String INTERSERVER_ADDRESS = "18.219.79.157";
+    // public static final String INTERSERVER_ADDRESS = "127.0.0.1";
+    public static final String INTERSERVER_ADDRESS = "18.219.79.157";
 
     public static final String ZIP_SUFFIX = ".zip";
 
