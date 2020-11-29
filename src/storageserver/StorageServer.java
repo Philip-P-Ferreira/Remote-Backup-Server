@@ -123,7 +123,7 @@ public class StorageServer
     private static void handleUpload(HashMap<String, String> req) throws IOException
     {
         HashMap<String, String> res = new HashMap<>(); // map to send back
-        File fileToStore = new File(STORAGE_DIR.getPath() + '/' + req.get(FILENAME_KEY));
+        File fileToStore = new File(STORAGE_DIR.getPath() + File.separatorChar + req.get(FILENAME_KEY));
 
         // if file exists, send invalid file name status
         if (fileToStore.exists())
@@ -169,7 +169,7 @@ public class StorageServer
     {
         // Map to store response, file to send back
         HashMap<String, String> responseMap = new HashMap<>();
-        File fileToSend = new File(STORAGE_DIR.getPath() + '/' + requestMap.get(FILENAME_KEY));
+        File fileToSend = new File(STORAGE_DIR.getPath() + File.separatorChar + requestMap.get(FILENAME_KEY));
 
         // if file exists, send a zip back
         if (fileToSend.exists())
@@ -216,7 +216,7 @@ public class StorageServer
     {
         // get file name
         System.out.println(StorageStrings.REMOVING_START_MSG);
-        File fileToRm = new File(STORAGE_DIR.getPath() + '/' + req.get(FILENAME_KEY));
+        File fileToRm = new File(STORAGE_DIR.getPath() + File.separatorChar + req.get(FILENAME_KEY));
 
         // if exists, delete, otherwise invalid file
         HashMap<String, String> responseMap = new HashMap<>();

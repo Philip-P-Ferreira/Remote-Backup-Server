@@ -137,7 +137,7 @@ public class DesktopClient
         }
 
         // create zip file and corresponding stream
-        File zipFile = new File(fileToSend.getPath() + ZIP_SUFFIX);
+        File zipFile = new File(CLIENT_DIR.getPath() + File.separatorChar + fileToSend.getName() + ZIP_SUFFIX);
 
         // compress file
         System.out.println('\n' + DesktopClientStrings.COMPRESSING_MSG);
@@ -208,6 +208,7 @@ public class DesktopClient
         reqMap.put(FILENAME_KEY, filename);
 
         // send req to server
+        System.out.println(DesktopClientStrings.DOWNLOAD_REQUEST_MSG);
         TcpStream interStream = makeInterStream();
         HashMap<String, String> resMap = requestAndResponse(interStream, REQUEST_DOWNLOAD_VAL, reqMap);
 
@@ -225,7 +226,7 @@ public class DesktopClient
         case STATUS_OK_VAL:
 
             // create files to hold download / unzip
-            File zipFile = new File(filename + ZIP_SUFFIX);
+            File zipFile = new File(CLIENT_DIR.getPath() + File.separatorChar + filename + ZIP_SUFFIX);
 
             // signal server to start download
             reqMap.clear();

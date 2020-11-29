@@ -16,6 +16,7 @@ public class DesktopClientStrings
     public static final String STATUS_RESPONSE_FORMAT = "Status response: %s";
     public static final String FILE_NAME_PROMPT = "Enter file name to download: ";
     public static final String FILE_NOT_ON_STORAGE_MSG = "File does not exist on storage";
+    public static final String DOWNLOAD_REQUEST_MSG = "Requesting download...";
     public static final String DOWNLOADING_MSG = "Downloading file...";
     public static final String DOWNLOAD_DONE_MSG = "File downloaded";
     public static final String UNZIPPING_MSG = "Decompressing file...";
