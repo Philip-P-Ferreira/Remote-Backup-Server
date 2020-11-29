@@ -148,7 +148,8 @@ public class TcpStream implements Closeable
         int c = 0;
         byte[] buff = new byte[BUFFER_SIZE];
 
-        while (bytesRead != sizeInBytes) {
+        while (bytesRead != sizeInBytes)
+        {
             c = in.read(buff);
             buffOut.write(buff, 0, c);
 

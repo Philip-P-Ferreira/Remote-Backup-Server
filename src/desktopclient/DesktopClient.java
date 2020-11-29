@@ -317,7 +317,7 @@ public class DesktopClient
     /**
      * handleStats -
      * Sends storage stats back to the client
-     * 
+     *
      * @throws IOException
      */
     private static void handleStats() throws IOException
@@ -414,10 +414,11 @@ public class DesktopClient
         return new TcpStream(INTERSERVER_ADDRESS, CLIENT_PORT);
     }
 
-    private static String formatByteSize(long byteSize) {
-
-        int suffixCount = 0; 
-        while (byteSize > BYTE_CONVERSION_NUM) {
+    private static String formatByteSize(long byteSize)
+    {
+        int suffixCount = 0;
+        while (byteSize > BYTE_CONVERSION_NUM)
+        {
             ++suffixCount;
             byteSize /= BYTE_CONVERSION_NUM;
         }
