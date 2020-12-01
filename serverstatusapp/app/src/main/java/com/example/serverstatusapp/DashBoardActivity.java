@@ -88,7 +88,7 @@ public class DashBoardActivity extends AppCompatActivity
             long total = Long.parseLong(statsMap.get(STATS_MAX_CAPACITY_KEY));
             Date lastwrite = new Date(Long.parseLong(statsMap.get(STATS_LAST_WRITE_KEY)));
 
-            int percentUsed = 1 - (int)(free / total);
+            int percentUsed = (int)Math.round((1.0 - (free * 1.0/total)) * 100);
 
             String formatByte = formatByteSize(total);
             storageTxt.setText(percentUsed + "% used (of " + formatByte + ")\nLast modified: " + lastwrite.toString());
