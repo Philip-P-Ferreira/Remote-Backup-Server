@@ -125,7 +125,7 @@ public class DesktopClient
             }
 
             // create file and check if exists
-            fileToSend = new File(lineInput.trim());
+            fileToSend = new File(lineInput.trim().replace("\\", ""));
             if (fileToSend.exists())
             {
                 validFile = true;
