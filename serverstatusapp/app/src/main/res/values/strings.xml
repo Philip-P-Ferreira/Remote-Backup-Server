@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Server Status App</string>
+    <string name="start_button_label">Start</string>
+    <string name="refesh_button_label">Refresh</string>
+    <string name="delete_button_label">Delete</string>
 </resources>
